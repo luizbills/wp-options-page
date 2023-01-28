@@ -97,6 +97,10 @@ class My_Settings_Page extends WP_Options_Page {
 My_Settings_Page::instance();
 ```
 
+### Example Preview
+
+![](https://user-images.githubusercontent.com/1798830/215272860-6256864b-5880-4567-81f2-b291bf760ce7.png)
+
 ## Documentation
 
 Learn more in our [wiki](https://github.com/luizbills/wp-options-page/wiki).
