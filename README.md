@@ -37,7 +37,7 @@ function yourprefix_create_settings_page () {
 			'id' => 'api_key',
 			'title' => 'API Key',
 			'type' => 'text',
-		];
+		]
 	];
 
 	// register the page
