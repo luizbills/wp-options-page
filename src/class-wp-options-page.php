@@ -4,7 +4,7 @@
  *
  * @package WP_Options_Page
  * @author Luiz Bills <luizbills@pm.me>
- * @version 1.0.0
+ * @version 0.1.0
  * @see https://github.com/luizbills/wp-options-page
  */
 
