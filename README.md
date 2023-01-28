@@ -99,7 +99,7 @@ My_Settings_Page::instance();
 
 ### Example Preview
 
-![](https://user-images.githubusercontent.com/1798830/215272860-6256864b-5880-4567-81f2-b291bf760ce7.png)
+![](https://user-images.githubusercontent.com/1798830/215272911-9a90f0fd-d62d-49f4-bc64-7906f513695a.png)
 
 ## Documentation
 
