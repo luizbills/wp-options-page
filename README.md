@@ -28,7 +28,7 @@ function yourprefix_create_settings_page () {
 	$page->id = 'my_settings_page';
 
 	// set the menu name
-	$page->menu_title = 'Settings';
+	$page->menu_title = 'My Settings';
 
 	// register your options fields
 	$page->fields = [
@@ -75,7 +75,7 @@ class My_Settings_Page extends WP_Options_Page {
 		$this->id = 'my_settings_page';
 
 		// set the menu name
-		$this->menu_title = 'Settings';
+		$this->menu_title = 'My Settings';
 
 		// register the page
 		parent::init();
