@@ -45,6 +45,10 @@ function yourprefix_create_settings_page () {
 
 	// access the stored options
 	$api_key = $page->get_option( 'api_key' );
+	
+	// store this page in a global object or variable
+	// So you can easily your instance class later
+	// example: My_Plugin->settings = $page;
 }
 add_action( 'init', 'yourprefix_create_settings_page' );
 ```
