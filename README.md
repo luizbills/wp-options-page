@@ -10,7 +10,7 @@ Install using composer:
 composer require luizbills/wp-options-page
 ```
 
-Or just copy `src/wp-options-page` to your project and include in your code:
+Or just copy `src/class-wp-options-page.php` to your project and include in your code:
 
 ```php
 require 'path/to/your/wp-options-page.php`
