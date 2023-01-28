@@ -446,6 +446,8 @@ class WP_Options_Page {
 				'value' => $value
 			];
 		}
+		
+		$options = apply_filters( $this->hook_prefix . 'updated_options', $options, $this ); 
 
 		if ( count( $options ) > 0 ) {
 			$updated = $this->update_options( $options );
