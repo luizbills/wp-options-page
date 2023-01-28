@@ -99,7 +99,7 @@ My_Settings_Page::instance();
 
 ## Documentation
 
-Learn more in our [wiki](https://github.dev/luizbills/wp-options-page/wiki).
+Learn more in our [wiki](https://github.com/luizbills/wp-options-page/wiki).
 
 ## LICENSE
 
