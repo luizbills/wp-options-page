@@ -45,7 +45,7 @@ function yourprefix_create_settings_page () {
 
 	// access the stored options
 	$api_key = $page->get_option( 'api_key' );
-	
+
 	// store this page in a global object or variable
 	// So you can easily your instance class later
 	// example: My_Plugin->settings = $page;
@@ -57,16 +57,15 @@ Or create your own derived class:
 
 ```php
 class My_Settings_Page extends WP_Options_Page {
-
 	// I recommend using Singleton pattern
 	// So you can easily retrieve the class later
-	// example: My_Settings_Page::get_instance()->get_option( 'api_key' );
+	// example: My_Settings_Page::instance()->get_option( 'api_key' );
 	private static $instance = null;
-	public function get_instance () {
+	public static function instance () {
 		if ( ! self::$instance ) self::$instance = new self();
 		return self::$instance;
 	}
-	
+
 	public function __construct () {
 		add_action( 'init', [ $this, 'init' ] );
 	}
@@ -93,6 +92,9 @@ class My_Settings_Page extends WP_Options_Page {
 		];
 	}
 }
+
+// start your class
+My_Settings_Page::instance();
 ```
 
 ## Documentation
