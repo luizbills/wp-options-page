@@ -44,17 +44,25 @@ function yourprefix_create_settings_page () {
 	$page->init();
 
 	// access the stored options
-	$api_key $page->get_option( 'api_key' );
+	$api_key = $page->get_option( 'api_key' );
 }
 add_action( 'init', 'yourprefix_create_settings_page' );
-
-
 ```
 
 Or create your own derived class:
 
 ```php
 class My_Settings_Page extends WP_Options_Page {
+
+	// I recommend using Singleton pattern
+	// So you can easily retrieve the class later
+	// example: My_Settings_Page::get_instance()->get_option( 'api_key' );
+	private static $instance = null;
+	public function get_instance () {
+		if ( ! self::$instance ) self::$instance = new self();
+		return self::$instance;
+	}
+	
 	public function __construct () {
 		add_action( 'init', [ $this, 'init' ] );
 	}
@@ -70,14 +78,14 @@ class My_Settings_Page extends WP_Options_Page {
 		parent::init();
 	}
 
+	// overrides the `get_fields` method to register your fields
 	public function get_fields () {
 		return [
-			// a simple text input field
 			[
 				'id' => 'api_key',
 				'title' => 'API Key',
 				'type' => 'text',
-			];
+			]
 		];
 	}
 }
