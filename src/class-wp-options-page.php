@@ -669,11 +669,12 @@ class WP_Options_Page {
 		$placeholder = $field['placeholder'] ?? '';
 		$desc = $field['description'];
 		$describedby = $desc ? 'aria-describedby="' . esc_attr( $id ) . '-description"' : '';
+		$rows = $field['input_rows'] ?? 5;
 
 		$this->open_wrapper( $field );
 		?>
 
-		<textarea name="<?= esc_attr( $name ); ?>" id="<?= esc_attr( $name ); ?>" <?= $describedby ?> class="<?= esc_attr( $class ); ?>" placeholder="<?= esc_attr( $placeholder ) ?>" rows="6"><?= esc_html( $value ); ?></textarea>
+		<textarea name="<?= esc_attr( $name ); ?>" id="<?= esc_attr( $name ); ?>" <?= $describedby ?> class="<?= esc_attr( $class ); ?>" placeholder="<?= esc_attr( $placeholder ) ?>" rows="<?= esc_attr( $rows ) ?>"><?= esc_html( $value ); ?></textarea>
 
 		<?php do_action( $this->hook_prefix . 'after_field_input', $field ); ?>
 
