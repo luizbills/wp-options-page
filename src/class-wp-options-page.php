@@ -487,6 +487,28 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @param string $hook_name
+	 * @param callable|string|array $callback
+	 * @param integer $priority
+	 * @param integer $args
+	 * @return bool
+	 */
+	public function add_action ( $hook_name, $callback, $priority = 10, $args = 1 ) {
+		return \add_action( $this->hook_prefix . $hook_name, $callback, $priority, $args );
+	}
+
+	/**
+	 * @param string $hook_name
+	 * @param callable|string|array $callback
+	 * @param integer $priority
+	 * @param integer $args
+	 * @return bool
+	 */
+	public function add_filter ( $hook_name, $callback, $priority = 10, $args = 1 ) {
+		return \add_action( $this->hook_prefix . $hook_name, $callback, $priority, $args );
+	}
+
+	/**
 	 * @return void
 	 */
 	public function render_page () {
