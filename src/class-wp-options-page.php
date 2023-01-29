@@ -494,7 +494,7 @@ class WP_Options_Page {
 	 * @return bool
 	 */
 	public function add_action ( $hook_name, $callback, $priority = 10, $args = 1 ) {
-		return \add_action( $this->hook_prefix . $hook_name, $callback, $priority, $args );
+		return \add_filter( $this->hook_prefix . $hook_name, $callback, $priority, $args );
 	}
 
 	/**
