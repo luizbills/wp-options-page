@@ -113,15 +113,78 @@ class WP_Options_Page {
 	protected $default_values = [];
 
 	/**
-	 * @return string
+	 * @return void
 	 */
-	public function get_url () {
-		$path = 'admin.php';
-		// woocommerce submenu support
-		if ( $this->menu_parent && 'woocommerce' !== $this->menu_parent ) {
-			$path = $this->menu_parent;
+	public function init () {
+		if ( ! did_action( 'init' ) ) {
+			throw new \Exception( 'Please, don\'t use the ' . get_class( $this ) . ' class before "init" hook.' );
 		}
-		return admin_url( $path . '?page=' . $this->id );
+		if ( ! $this->id ) {
+			throw new \Exception( 'Missing $id in ' . get_class( $this ) );
+		}
+
+		$this->menu_title = $this->menu_title ?? $this->id;
+		$this->page_title = $this->page_title ?? $this->menu_title;
+		$this->option_name = $this->option_name ?? $this->id . '_options';
+		$this->field_prefix = $this->field_prefix ?? $this->id . '_';
+		$this->hook_prefix = $this->hook_prefix ?? $this->field_prefix;
+
+		$this->strings = array_merge(
+			[
+				'notice_error' => '<strong>Error</strong>: %s',
+				'checkbox_enable' => 'Enable',
+				'options_updated' => '<strong>' . __( 'Settings saved.' ) . '</strong>',
+			],
+			$this->strings
+		);
+
+		$this->init_hooks();
+		$this->init_fields();
+		$this->handle_options();
+	}
+
+	/**
+	 * @return void
+	 */
+	protected function init_hooks () {
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'admin_menu', [ $this, 'add_menu_page' ], $this->menu_priority );
+	}
+
+	/**
+	 * @return void
+	 */
+	public function init_fields () {
+		$this->fields = apply_filters(
+			$this->hook_prefix . 'get_fields',
+			$this->fields ? $this->fields : $this->get_fields(),
+			$this
+		);
+
+		foreach ( $this->fields as $field ) {
+			$id = $field['id'] ?? false;
+			if ( $id ) $this->default_values[ $id ] = $field['default'] ?? null;
+		}
+
+		if ( $this->insert_title ) {
+			array_unshift( $this->fields, [
+				'type' => 'title',
+				'title' => $this->page_title,
+				'description' => $this->page_description
+			] );
+		}
+
+		$has_submit = false;
+		foreach ( $this->fields as $key => $field ) {
+			$this->fields[ $key ] = $this->prepare_field( $field );
+			if ( ! $has_submit && 'submit' === $field['type'] ) $has_submit = true;
+		}
+
+		if ( ! $has_submit ) {
+			$this->fields[] = $this->prepare_field( [
+				'type' => 'submit'
+			] );
+		}
 	}
 
 	/**
@@ -221,81 +284,6 @@ class WP_Options_Page {
 			'type' => $type,
 			'class' => $class,
 		];
-	}
-
-	/**
-	 * @return void
-	 */
-	public function init () {
-		if ( ! did_action( 'init' ) ) {
-			throw new \Exception( 'Please, don\'t use the ' . get_class( $this ) . ' class before "init" hook.' );
-		}
-		if ( ! $this->id ) {
-			throw new \Exception( 'Missing $id in ' . get_class( $this ) );
-		}
-
-		$this->menu_title = $this->menu_title ?? $this->id;
-		$this->page_title = $this->page_title ?? $this->menu_title;
-		$this->option_name = $this->option_name ?? $this->id . '_options';
-		$this->field_prefix = $this->field_prefix ?? $this->id . '_';
-		$this->hook_prefix = $this->hook_prefix ?? $this->field_prefix;
-
-		$this->strings = array_merge(
-			[
-				'notice_error' => '<strong>Error</strong>: %s',
-				'checkbox_enable' => 'Enable',
-				'options_updated' => '<strong>' . __( 'Settings saved.' ) . '</strong>',
-			],
-			$this->strings
-		);
-
-		$this->init_hooks();
-		$this->init_fields();
-		$this->handle_options();
-	}
-
-	/**
-	 * @return void
-	 */
-	protected function init_hooks () {
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-		add_action( 'admin_menu', [ $this, 'add_menu_page' ], $this->menu_priority );
-	}
-
-	/**
-	 * @return void
-	 */
-	public function init_fields () {
-		$this->fields = apply_filters(
-			$this->hook_prefix . 'get_fields',
-			$this->fields ? $this->fields : $this->get_fields(),
-			$this
-		);
-
-		foreach ( $this->fields as $field ) {
-			$id = $field['id'] ?? false;
-			if ( $id ) $this->default_values[ $id ] = $field['default'] ?? null;
-		}
-
-		if ( $this->insert_title ) {
-			array_unshift( $this->fields, [
-				'type' => 'title',
-				'title' => $this->page_title,
-				'description' => $this->page_description
-			] );
-		}
-
-		$has_submit = false;
-		foreach ( $this->fields as $key => $field ) {
-			$this->fields[ $key ] = $this->prepare_field( $field );
-			if ( ! $has_submit && 'submit' === $field['type'] ) $has_submit = true;
-		}
-
-		if ( ! $has_submit ) {
-			$this->fields[] = $this->prepare_field( [
-				'type' => 'submit'
-			] );
-		}
 	}
 
 	/**
@@ -484,6 +472,18 @@ class WP_Options_Page {
 			$values[ $data['id'] ] = $data['value'];
 		}
 		return update_option( $this->option_name, $values );
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_url () {
+		$path = 'admin.php';
+		// woocommerce submenu support
+		if ( $this->menu_parent && 'woocommerce' !== $this->menu_parent ) {
+			$path = $this->menu_parent;
+		}
+		return admin_url( $path . '?page=' . $this->id );
 	}
 
 	/**
