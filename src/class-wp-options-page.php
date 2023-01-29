@@ -697,7 +697,7 @@ class WP_Options_Page {
 		$placeholder = $field['placeholder'] ?? '';
 		$desc = $field['description'];
 		$describedby = $desc ? 'aria-describedby="' . esc_attr( $id ) . '-description"' : '';
-		$rows = $field['input_rows'] ?? 5;
+		$rows = $field['rows'] ?? 5;
 
 		$this->open_wrapper( $field );
 		?>
