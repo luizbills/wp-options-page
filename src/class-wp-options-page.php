@@ -432,10 +432,10 @@ class WP_Options_Page {
 			// maybe sanitize
 			$sanitize = $field['__sanitize'] ?? '';
 			if ( $sanitize ) {
-				if ( is_array( $value ) ) {
-					$value = maybe_unserialize( $sanitize( serialize( $value ) ) );
-				} else {
+				if ( is_scalar( $value ) ) {
 					$value = $sanitize( $value );
+				} else {
+					$value = maybe_unserialize( $sanitize( serialize( $value ) ) );
 				}
 			}
 
@@ -446,8 +446,8 @@ class WP_Options_Page {
 				'value' => $value
 			];
 		}
-		
-		$options = apply_filters( $this->hook_prefix . 'updated_options', $options, $this ); 
+
+		$options = apply_filters( $this->hook_prefix . 'updated_options', $options, $this );
 
 		if ( count( $options ) > 0 ) {
 			$updated = $this->update_options( $options );
