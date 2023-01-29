@@ -419,6 +419,7 @@ class WP_Options_Page {
 				$error = false;
 				try {
 					$field['__validate']( $value, $field );
+					do_action( $this->hook_prefix . 'validate_field_' . $field['type'], $field, $this );
 				} catch ( \Throwable $e ) {
 					$error = $e->getMessage();
 					$message = $this->format_error_message( $error, $field );
