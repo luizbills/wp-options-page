@@ -410,8 +410,11 @@ class WP_Options_Page {
 					do_action( $this->hook_prefix . 'validate_field_' . $field['type'], $field, $this );
 				} catch ( \Throwable $e ) {
 					$error = $e->getMessage();
-					$message = $this->format_error_message( $error, $field );
-					$this->add_notice( $message, 'error', 'field-' . $name );
+					// avoid to display messages from empty exceptions
+					$message = $error ? $this->format_error_message( $error, $field ) : false;
+					if ( $message ) {
+						$this->add_notice( $message, 'error', 'field-' . $name );
+					}
 					$field['error'] = $error;
 					$field['value'] = $value;
 					continue;
