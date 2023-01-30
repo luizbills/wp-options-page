@@ -963,7 +963,7 @@ class WP_Options_Page {
 		$icon = $this->get_icon( $field['title_icon'] );
 		$desc = $field['description'];
 		?>
-		<h1 id="<?= esc_attr( $id ) ?>"><?= esc_html( $field['title'] ) . $icon ?></h1>
+		<h2 id="<?= esc_attr( $id ) ?>"><?= esc_html( $field['title'] ) . $icon ?></h2>
 		<?php if ( $desc ) : ?>
 		<p><?= $desc ?></p>
 		<?php endif ?>
