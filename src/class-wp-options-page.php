@@ -14,102 +14,188 @@ if ( class_exists( 'WP_Options_Page' ) ) return;
 
 class WP_Options_Page {
 	/**
+	 * The ID (also the slug) of the page. Should be unique for this menu page and only include lowercase alphanumeric, dashes, and underscores characters to be compatible with `sanitize_key()`.
+	 *
+	 * @since 0.1.0
+	 * @see https://developer.wordpress.org/reference/functions/sanitize_key/
 	 * @var string
 	 */
 	public $id = null;
 
 	/**
+	 * The slug name for the parent menu (or the file name of a standard WordPress admin page).
+	 *
+	 * @since 0.1.0
 	 * @var string
 	 */
 	public $menu_parent = null;
 
 	/**
+	 * The text to be displayed in the <title> tag of the page when the menu is selected.
+	 * This text is also used in a <h1> tag at the top of the page, if the $insert_title is equal to `true`.
+	 *
+	 * @since 0.1.0
+	 * @see WP_Options_Page::$insert_title
 	 * @var string
 	 */
 	public $page_title = null;
 
 	/**
+	 * A text that appears immediately after the <h1> title of the page, if the $insert_title is equal to `true`.
+	 *
+	 * @since 0.1.0
+	 * @see WP_Options_Page::$insert_title
 	 * @var string
 	 */
 	public $page_description = null;
 
 	/**
+	 * If enabled, inserts a <h1> tag title and description at the top of the page.
+	 *
+	 * @since 0.1.0
+	 * @see WP_Options_Page::$page_description
+	 * @see WP_Options_Page::$page_title
 	 * @var string
 	 */
 	public $insert_title = true;
 
 	/**
+	 * The text to be used for the menu.
+	 *
+	 * @since 0.1.0
 	 * @var string
 	 */
 	public $menu_title = null;
 
 	/**
+	 * The position in the menu order this item should appear.
+	 *
+	 * @since 0.1.0
+	 * @see https://developer.wordpress.org/reference/functions/add_menu_page/#parameters
 	 * @var int|float
 	 */
 	public $menu_position = null;
 
 	/**
+	 * The hook priority used if this page is a subpage.
+	 *
+	 * @since 0.1.0
 	 * @var int|float
 	 */
 	public $menu_priority = 10;
 
 	/**
+	 * The URL to the icon to be used for this menu.
+	 *   - Pass a base64-encoded SVG using a data URI, which will be colored to match the color scheme. This should begin with 'data:image/svg+xml;base64,'.
+     *   - Pass the name of a Dashicons helper class to use a font icon, e.g. 'dashicons-chart-pie'.
+     *   - Pass 'none' to leave div.wp-menu-image empty so an icon can be added via CSS.
+	 *
+	 * @since 0.1.0
+	 * @see https://developer.wordpress.org/reference/functions/add_menu_page/#parameters
 	 * @var string
 	 */
 	public $menu_icon = 'dashicons-admin-generic';
 
 	/**
+	 * The capability (or user role) required for this menu to be displayed to the user.
+	 *
+	 * @since 0.1.0
 	 * @var string
 	 */
 	public $capability = 'manage_options';
 
 	/**
+	 * The option name where all options of the page will be stored.
+	 * By default is `"{$this->id}_options"`.
+	 *
+	 * @since 0.1.0
 	 * @var string
 	 */
 	public $option_name = null;
 
 	/**
+	 * The prefix appended in all field name attributes.
+	 * By default is `"{$this->id}_"`.
+	 *
+	 * @since 0.1.0
 	 * @var string
 	 */
 	public $field_prefix = null;
 
 	/**
+	 * The prefix appended in all hooks triggered by the page.
+	 *
+	 * @since 0.1.0
+	 * @see WP_Options_Page::add_action()
+	 * @see WP_Options_Page::add_filter()
 	 * @var string
 	 */
 	public $hook_prefix = null;
 
 	/**
+	 * The page's hook_suffix returned by `add_menu_page()` or `add_submenu_page()`.
+	 *
+	 * @since 0.1.0
+	 * @see https://developer.wordpress.org/reference/functions/add_menu_page/#return
 	 * @var string
 	 */
 	public $hook_suffix = null;
 
 	/**
+	 * The fields of the page.
+	 *
+	 * @since 0.1.0
+	 * @see WP_Options_Page::init_fields()
 	 * @var array
 	 */
 	public $fields = null;
 
 	/**
+	 * Array with some strings that are used on the page. You can overwrite them to change or make them translatable.
+	 *
+	 * @since 0.1.0
 	 * @var string
 	 */
 	public $strings = [];
 
 	/**
+	 * @since 0.1.0
+	 * @see WP_Options_Page::add_notice()
 	 * @var array
 	 */
 	protected $admin_notices = [];
 
 	/**
+	 * A flag used during the page rendering process.
+	 *
+	 * @since 0.1.0
+	 * @see WP_Options_Page::render_field()
+	 * @see WP_Options_Page::maybe_open_or_close_table()
 	 * @var bool
 	 */
 	protected $table_is_open = null;
 
-	/** @var array */
+	/**
+	 * @since 0.1.0
+	 * @see WP_Options_Page::add_script()
+	 * @var array
+	 */
 	protected $scripts = [];
 
-	/** @var array */
+	/**
+	 * @since 0.1.0
+	 * @see WP_Options_Page::add_style()
+	 * @var array
+	 */
 	protected $styles = [];
 
-	/** @var array */
+	/**
+	 * The default value of each field of the page.
+	 *
+	 * @since 0.1.0
+	 * @see WP_Options_Page::init_fields()
+	 * @var array
+	 */
 	protected $default_values = [];
 
 	/**
