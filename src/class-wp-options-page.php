@@ -124,6 +124,7 @@ class WP_Options_Page {
 
 	/**
 	 * The prefix appended in all hooks triggered by the page.
+	 * By default is `"{$this->field_prefix}_"`.
 	 *
 	 * @since 0.1.0
 	 * @see WP_Options_Page::add_action()
