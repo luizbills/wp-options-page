@@ -943,11 +943,12 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_field_title ( $field ) {
-		$id = $this->field_prefix . $field['id'];
+		$id = $field['id'] ? $this->field_prefix . $field['id'] : '';
 		$icon = $this->get_icon( $field['title_icon'] );
 		$desc = $field['description'];
+		$class = $field['class'] ?? '';
 		?>
-		<h1 id="<?= esc_attr( $id ) ?>"><?= esc_html( $field['title'] ) . $icon ?></h1>
+		<h1 id="<?= esc_attr( $id ) ?>" class="<?= esc_attr( $class ) ?>"><?= esc_html( $field['title'] ) . $icon ?></h1>
 		<?php if ( $desc ) : ?>
 		<p><?= $desc ?></p>
 		<?php endif ?>
@@ -959,11 +960,12 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_field_subtitle ( $field ) {
-		$id = $this->field_prefix . $field['id'];
+		$id = $field['id'] ? $this->field_prefix . $field['id'] : '';
 		$icon = $this->get_icon( $field['title_icon'] );
 		$desc = $field['description'];
+		$class = $field['class'] ?? '';
 		?>
-		<h2 id="<?= esc_attr( $id ) ?>"><?= esc_html( $field['title'] ) . $icon ?></h2>
+		<h2 id="<?= esc_attr( $id ) ?>" class="<?= esc_attr( $class ) ?>"><?= esc_html( $field['title'] ) . $icon ?></h2>
 		<?php if ( $desc ) : ?>
 		<p><?= $desc ?></p>
 		<?php endif ?>
