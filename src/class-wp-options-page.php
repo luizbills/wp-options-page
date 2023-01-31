@@ -254,11 +254,19 @@ class WP_Options_Page {
 		}
 
 		if ( $this->insert_title ) {
-			array_unshift( $this->fields, [
-				'type' => 'title',
-				'title' => $this->page_title,
-				'description' => $this->page_description
-			] );
+			$primary_title = apply_filters(
+				$this->hook_prefix . 'top_page_title',
+				[
+					'type' => 'title',
+					'title' => $this->page_title,
+					'description' => $this->page_description,
+					'class' => '',
+				],
+				$this
+			);
+			if ( $primary_title ) {
+				array_unshift( $this->fields, $primary_title );
+			}
 		}
 
 		$has_submit = false;
