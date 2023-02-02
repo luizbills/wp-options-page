@@ -1,4 +1,9 @@
 <?php
+
+if ( ! defined( 'WPINC' ) ) die();
+
+if ( class_exists( 'WP_Options_Page' ) ) return;
+
 /**
  * WP_Options_Page class
  *
@@ -7,11 +12,6 @@
  * @version 0.2.0
  * @see https://github.com/luizbills/wp-options-page
  */
-
-if ( ! defined( 'WPINC' ) ) die();
-
-if ( class_exists( 'WP_Options_Page' ) ) return;
-
 class WP_Options_Page {
 	/**
 	 * The ID (also the slug) of the page. Should be unique for this menu page and only include lowercase alphanumeric, dashes, and underscores characters to be compatible with `sanitize_key()`.
