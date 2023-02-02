@@ -70,6 +70,7 @@ class My_Settings_Page extends WP_Options_Page {
 		add_action( 'init', [ $this, 'init' ] );
 	}
 
+	// overrides the `init` method to setup your page
 	public function init () {
 		// give your page a ID
 		$this->id = 'my_settings_page';
