@@ -228,6 +228,8 @@ class WP_Options_Page {
 		$this->init_hooks();
 		$this->init_fields();
 		$this->handle_options();
+
+		\do_action( 'wp_options_page_init', $this );
 	}
 
 	/**
@@ -280,6 +282,48 @@ class WP_Options_Page {
 				'type' => 'submit'
 			] );
 		}
+	}
+
+	/**
+	 * @return void
+	 */
+	public function add_menu_page () {
+		if ( ! $this->menu_parent ) {
+			$this->hook_suffix = \add_menu_page(
+				$this->page_title,
+				$this->menu_title,
+				$this->capability,
+				$this->id,
+				[ $this, 'render_page' ],
+				$this->menu_icon,
+				$this->menu_position
+			);
+		} else {
+			$this->hook_suffix = \add_submenu_page(
+				$this->menu_parent,
+				$this->page_title,
+				$this->menu_title,
+				$this->capability,
+				$this->id,
+				[ $this, 'render_page' ],
+				$this->menu_position
+			);
+		}
+
+		$this->do_action( 'admin_menu', $this );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_fields () {
+		return [
+			[
+				'title' => $this->page_title,
+				'description' => 'Overrides the <code>' . __METHOD__ . '</code> to display your settings fields',
+				'type' => 'title',
+			],
+		];
 	}
 
 	/**
@@ -416,46 +460,6 @@ class WP_Options_Page {
 		}
 
 		return apply_filters( $this->hook_prefix . 'prepare_field', $field );
-	}
-
-	/**
-	 * @return void
-	 */
-	public function add_menu_page () {
-		if ( ! $this->menu_parent ) {
-			$this->hook_suffix = \add_menu_page(
-				$this->page_title,
-				$this->menu_title,
-				$this->capability,
-				$this->id,
-				[ $this, 'render_page' ],
-				$this->menu_icon,
-				$this->menu_position
-			);
-		} else {
-			$this->hook_suffix = \add_submenu_page(
-				$this->menu_parent,
-				$this->page_title,
-				$this->menu_title,
-				$this->capability,
-				$this->id,
-				[ $this, 'render_page' ],
-				$this->menu_position
-			);
-		}
-	}
-
-	/**
-	 * @return array
-	 */
-	public function get_fields () {
-		return [
-			[
-				'title' => $this->page_title,
-				'description' => 'Overrides the <code>' . __METHOD__ . '</code> to display your settings fields',
-				'type' => 'title',
-			],
-		];
 	}
 
 	/**
