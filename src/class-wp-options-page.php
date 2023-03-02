@@ -9,7 +9,7 @@ if ( class_exists( 'WP_Options_Page' ) ) return;
  *
  * @package WP_Options_Page
  * @author Luiz Bills <luizbills@pm.me>
- * @version 0.2.0
+ * @version 0.3.0
  * @see https://github.com/luizbills/wp-options-page
  */
 class WP_Options_Page {
@@ -131,16 +131,17 @@ class WP_Options_Page {
 	 * @see WP_Options_Page::add_filter()
 	 * @var string
 	 */
-	public $hook_prefix = null;
+	protected $hook_prefix = null;
 
 	/**
 	 * The page's hook_suffix returned by `add_menu_page()` or `add_submenu_page()`.
 	 *
 	 * @since 0.1.0
+	 * @see WP_Options_Page::get_hook_suffix()
 	 * @see https://developer.wordpress.org/reference/functions/add_menu_page/#return
 	 * @var string
 	 */
-	public $hook_suffix = null;
+	protected $hook_suffix = null;
 
 	/**
 	 * The fields of the page.
@@ -310,7 +311,15 @@ class WP_Options_Page {
 			);
 		}
 
-		$this->do_action( 'admin_menu', $this );
+		$this->do_action( 'admin_menu', $this, $this->hook_suffix );
+	}
+
+	/**
+	 * @since 0.3.0
+	 * @return string
+	 */
+	public function get_hook_suffix () {
+		return $this->hook_suffix;
 	}
 
 	/**
