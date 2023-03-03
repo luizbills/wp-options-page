@@ -201,6 +201,15 @@ class WP_Options_Page {
 	protected $default_values = [];
 
 	/**
+	 * List of supported features.
+	 * The intention is that it will be used by other developers to choose whether or not to activate a feature.
+	 *
+	 * @since 0.3.0
+	 * @var array
+	 */
+	public $supports = [];
+
+	/**
 	 * @return void
 	 */
 	public function init () {
