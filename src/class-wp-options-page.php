@@ -515,7 +515,7 @@ class WP_Options_Page {
 				$error = false;
 				try {
 					$field['__validate']( $value, $field );
-					do_action( $this->hook_prefix . 'validate_field_' . $field['type'], $field, $this );
+					$this->do_action( 'validate_field_' . $field['type'], $field, $this );
 				} catch ( \Throwable $e ) {
 					$error = $e->getMessage();
 					// avoid to display messages from empty exceptions
@@ -620,12 +620,21 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @param string $action
+	 * @param mixed ...$arg
+	 * @return void
+	 */
+	public function do_action ( $action, ...$arg ) {
+		\do_action( $this->hook_prefix . $action, ...$arg );
+	}
+
+	/**
 	 * @return void
 	 */
 	public function render_page () {
 		?>
 		<div class="wrap">
-			<?php do_action( $this->hook_prefix . 'before_render_form', $this ); ?>
+			<?php $this->do_action( 'before_render_form', $this ); ?>
 
 			<form method="post" action="<?= esc_attr( remove_query_arg( '_wp_http_referer' ) ) ?>" novalidate="novalidate">
 				<?php $this->render_notices() ?>
@@ -633,7 +642,7 @@ class WP_Options_Page {
 				<?php $this->render_all_fields() ?>
 			</form>
 
-			<?php do_action( $this->hook_prefix . 'after_render_form', $this ); ?>
+			<?php $this->do_action( 'after_render_form', $this ); ?>
 		</div>
 		<?php
 	}
@@ -720,12 +729,12 @@ class WP_Options_Page {
 		$type = $field['type'];
 		$method = 'render_field_' . $type;
 		$this->maybe_open_or_close_table( $field );
-		do_action( $this->hook_prefix . 'before_render_field', $field, $this );
+		$this->do_action( 'before_render_field', $field, $this );
 		if ( method_exists( $this, $method ) ) {
 			$this->$method( $field );
 		} else {
 			ob_start();
-			do_action( $this->hook_prefix . 'render_field_'  . $type, $field, $this );
+			$this->do_action( 'render_field_'  . $type, $field, $this );
 			$output = ob_get_clean();
 			if ( $output ) {
 				echo $output;
@@ -733,7 +742,7 @@ class WP_Options_Page {
 				throw new Exception( "Invalid field type \"{$field['type']}\" in " . get_class( $this ) );
 			}
 		}
-		do_action( $this->hook_prefix . 'after_render_field', $field, $this );
+		$this->do_action( 'after_render_field', $field, $this );
 	}
 
 	/**
@@ -784,7 +793,7 @@ class WP_Options_Page {
 
 		<input name="<?= esc_attr( $name ); ?>" type="<?= esc_attr( $type ) ?>" id="<?= esc_attr( $name ); ?>" <?= $describedby ?> value="<?= esc_attr( $value ); ?>" class="<?= esc_attr( $class ); ?>" placeholder="<?= esc_attr( $placeholder ) ?>">
 
-		<?php do_action( $this->hook_prefix . 'after_field_input', $field ); ?>
+		<?php $this->do_action( 'after_field_input', $field ); ?>
 
 		<?php if ( $desc ) : ?>
 		<p class="description" id="<?= esc_attr( $name ); ?>-description"><?= $desc ?></p>
@@ -812,7 +821,7 @@ class WP_Options_Page {
 
 		<textarea name="<?= esc_attr( $name ); ?>" id="<?= esc_attr( $name ); ?>" <?= $describedby ?> class="<?= esc_attr( $class ); ?>" placeholder="<?= esc_attr( $placeholder ) ?>" rows="<?= esc_attr( $rows ) ?>"><?= esc_html( $value ); ?></textarea>
 
-		<?php do_action( $this->hook_prefix . 'after_field_input', $field ); ?>
+		<?php $this->do_action( 'after_field_input', $field ); ?>
 
 		<?php if ( $desc ) : ?>
 		<p class="description" id="<?= esc_attr( $name ); ?>-description"><?= $desc ?></p>
@@ -842,7 +851,7 @@ class WP_Options_Page {
 			<?php endforeach; ?>
 		</select>
 
-		<?php do_action( $this->hook_prefix . 'after_field_input', $field ); ?>
+		<?php $this->do_action( 'after_field_input', $field ); ?>
 
 		<?php if ( $desc ) : ?>
 		<p class="description" id="<?= esc_attr( $id ); ?>-description"><?= $desc ?></p>
@@ -878,7 +887,7 @@ class WP_Options_Page {
 				<br>
 			<?php endforeach ?>
 
-			<?php do_action( $this->hook_prefix . 'after_field_input', $field ); ?>
+			<?php $this->do_action( 'after_field_input', $field ); ?>
 
 			<?php if ( $desc ) : ?>
 			<p class="description"><?= $desc ?></p>
@@ -910,7 +919,7 @@ class WP_Options_Page {
 				<?= $label ?>
 			</label>
 
-			<?php do_action( $this->hook_prefix . 'after_field_input', $field ); ?>
+			<?php $this->do_action( 'after_field_input', $field ); ?>
 
 			<?php if ( $desc ) : ?>
 			<p class="description"><?= $desc ?></p>
@@ -949,7 +958,7 @@ class WP_Options_Page {
 				<br>
 			<?php endforeach ?>
 
-			<?php do_action( $this->hook_prefix . 'after_field_input', $field ); ?>
+			<?php $this->do_action( 'after_field_input', $field ); ?>
 
 			<?php if ( $desc ) : ?>
 			<p class="description"><?= $desc ?></p>
