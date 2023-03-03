@@ -607,37 +607,6 @@ class WP_Options_Page {
 	}
 
 	/**
-	 * @param string $hook_name
-	 * @param callable|string|array $callback
-	 * @param integer $priority
-	 * @param integer $args
-	 * @return bool
-	 */
-	public function add_action ( $hook_name, $callback, $priority = 10, $args = 1 ) {
-		return \add_filter( $this->hook_prefix . $hook_name, $callback, $priority, $args );
-	}
-
-	/**
-	 * @param string $hook_name
-	 * @param callable|string|array $callback
-	 * @param integer $priority
-	 * @param integer $args
-	 * @return bool
-	 */
-	public function add_filter ( $hook_name, $callback, $priority = 10, $args = 1 ) {
-		return \add_filter( $this->hook_prefix . $hook_name, $callback, $priority, $args );
-	}
-
-	/**
-	 * @param string $action
-	 * @param mixed ...$arg
-	 * @return void
-	 */
-	public function do_action ( $action, ...$arg ) {
-		\do_action( $this->hook_prefix . $action, ...$arg );
-	}
-
-	/**
 	 * @return void
 	 */
 	public function render_page () {
@@ -1023,5 +992,36 @@ class WP_Options_Page {
 			<input type="submit" name="submit" id="submit" class="<?= esc_attr( $class ) ?>" value="<?= esc_attr( $title ) ?>">
 		</p>
 		<?php
+	}
+
+	/**
+	 * @param string $hook_name
+	 * @param callable|string|array $callback
+	 * @param integer $priority
+	 * @param integer $args
+	 * @return bool
+	 */
+	public function add_action ( $hook_name, $callback, $priority = 10, $args = 1 ) {
+		return \add_filter( $this->hook_prefix . $hook_name, $callback, $priority, $args );
+	}
+
+	/**
+	 * @param string $hook_name
+	 * @param callable|string|array $callback
+	 * @param integer $priority
+	 * @param integer $args
+	 * @return bool
+	 */
+	public function add_filter ( $hook_name, $callback, $priority = 10, $args = 1 ) {
+		return \add_filter( $this->hook_prefix . $hook_name, $callback, $priority, $args );
+	}
+
+	/**
+	 * @param string $action
+	 * @param mixed ...$arg
+	 * @return void
+	 */
+	public function do_action ( $action, ...$arg ) {
+		\do_action( $this->hook_prefix . $action, ...$arg );
 	}
 }
