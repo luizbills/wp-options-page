@@ -210,6 +210,7 @@ class WP_Options_Page {
 	public $supports = [];
 
 	/**
+	 * @since 0.1.0
 	 * @return void
 	 */
 	public function init () {
@@ -243,6 +244,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return void
 	 */
 	protected function init_hooks () {
@@ -251,6 +253,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return void
 	 */
 	public function init_fields () {
@@ -295,6 +298,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return void
 	 */
 	public function add_menu_page () {
@@ -332,19 +336,21 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return array
 	 */
 	public function get_fields () {
 		return [
 			[
-				'title' => $this->page_title,
-				'description' => 'Overrides the <code>' . __METHOD__ . '</code> to display your settings fields',
-				'type' => 'title',
+				'type' => 'subtitile',
+				'title' => 'Alert',
+				'description' => 'Overrides the <code>' . __METHOD__ . '</code> to display your own fields.',
 			],
 		];
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return mixed
 	 */
@@ -361,6 +367,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param string $field_id
 	 * @return mixed
 	 */
@@ -374,6 +381,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param string $field_id
 	 * @return mixed
 	 */
@@ -384,6 +392,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return string
 	 */
@@ -392,6 +401,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param string $handle
 	 * @param string $src
 	 * @param string[] $deps
@@ -404,6 +414,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param string $handle
 	 * @param string $src
 	 * @param string[] $deps
@@ -416,6 +427,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return string
 	 */
 	public function get_nonce_action () {
@@ -423,6 +435,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return string
 	 */
 	public function get_nonce_name () {
@@ -430,6 +443,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param string $message
 	 * @param string $type Should be "error", "success", "warning" or "info".
 	 * @param string $class
@@ -444,6 +458,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return array
 	 */
@@ -481,6 +496,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param string $hook_suffix
 	 * @return void
 	 */
@@ -495,6 +511,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return void
 	 */
 	public function handle_options () {
@@ -570,6 +587,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param string $error
 	 * @param array $field
 	 * @return string
@@ -582,6 +600,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $options
 	 * @return bool
 	 */
@@ -595,6 +614,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return string
 	 */
 	public function get_url () {
@@ -607,6 +627,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return void
 	 */
 	public function render_page () {
@@ -626,6 +647,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return void
 	 */
 	protected function render_notices () {
@@ -645,6 +667,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return void
 	 */
 	protected function render_nonce () {
@@ -655,6 +678,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @return void
 	 */
 	protected function render_all_fields () {
@@ -665,6 +689,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -682,6 +707,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param string $icon
 	 * @return string
 	 */
@@ -700,6 +726,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -724,6 +751,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -742,6 +770,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -753,6 +782,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -781,6 +811,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -809,6 +840,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -839,6 +871,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -876,6 +909,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -908,6 +942,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -947,6 +982,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -964,6 +1000,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -981,6 +1018,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.1.0
 	 * @param array $field
 	 * @return void
 	 */
@@ -995,6 +1033,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.2.0
 	 * @param string $hook_name
 	 * @param callable|string|array $callback
 	 * @param integer $priority
@@ -1006,6 +1045,7 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.2.0
 	 * @param string $hook_name
 	 * @param callable|string|array $callback
 	 * @param integer $priority
@@ -1017,11 +1057,23 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * @since 0.3.0
 	 * @param string $action
-	 * @param mixed ...$arg
+	 * @param mixed ...$args
 	 * @return void
 	 */
-	public function do_action ( $action, ...$arg ) {
-		\do_action( $this->hook_prefix . $action, ...$arg );
+	public function do_action ( $hook_name, ...$args ) {
+		\do_action( $this->hook_prefix . $hook_name, ...$args );
+	}
+
+	/**
+	 * @since 0.3.0
+	 * @param string $action
+	 * @param mixed $value
+	 * @param mixed ...$args
+	 * @return mixed The filtered value
+	 */
+	public function apply_filters ( $hook_name, $value, ...$args ) {
+		\apply_filters( $this->hook_prefix . $hook_name, ...$args );
 	}
 }
