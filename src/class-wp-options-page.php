@@ -1,7 +1,5 @@
 <?php
 
-if ( ! defined( 'WPINC' ) ) die();
-
 if ( class_exists( 'WP_Options_Page' ) ) return;
 
 /**
@@ -26,7 +24,7 @@ class WP_Options_Page {
 	 * The slug name for the parent menu (or the file name of a standard WordPress admin page).
 	 *
 	 * @since 0.1.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $menu_parent = null;
 
@@ -36,7 +34,7 @@ class WP_Options_Page {
 	 *
 	 * @since 0.1.0
 	 * @see WP_Options_Page::$insert_title
-	 * @var string
+	 * @var string|null
 	 */
 	public $page_title = null;
 
@@ -45,7 +43,7 @@ class WP_Options_Page {
 	 *
 	 * @since 0.1.0
 	 * @see WP_Options_Page::$insert_title
-	 * @var string
+	 * @var string|null
 	 */
 	public $page_description = null;
 
@@ -55,7 +53,7 @@ class WP_Options_Page {
 	 * @since 0.1.0
 	 * @see WP_Options_Page::$page_description
 	 * @see WP_Options_Page::$page_title
-	 * @var string
+	 * @var bool
 	 */
 	public $insert_title = true;
 
@@ -63,7 +61,7 @@ class WP_Options_Page {
 	 * The text to be used for the menu.
 	 *
 	 * @since 0.1.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $menu_title = null;
 
@@ -109,7 +107,7 @@ class WP_Options_Page {
 	 * By default is `"{$this->id}_options"`.
 	 *
 	 * @since 0.1.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $option_name = null;
 
@@ -118,7 +116,7 @@ class WP_Options_Page {
 	 * By default is `"{$this->id}_"`.
 	 *
 	 * @since 0.1.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $field_prefix = null;
 
@@ -129,7 +127,7 @@ class WP_Options_Page {
 	 * @since 0.1.0
 	 * @see WP_Options_Page::add_action()
 	 * @see WP_Options_Page::add_filter()
-	 * @var string
+	 * @var string|null
 	 */
 	protected $hook_prefix = null;
 
@@ -150,13 +148,13 @@ class WP_Options_Page {
 	 * @see WP_Options_Page::init_fields()
 	 * @var array
 	 */
-	public $fields = null;
+	public $fields = [];
 
 	/**
 	 * Array with some strings that are used on the page. You can overwrite them to change or make them translatable.
 	 *
 	 * @since 0.1.0
-	 * @var string
+	 * @var string[]
 	 */
 	public $strings = [];
 
@@ -175,7 +173,7 @@ class WP_Options_Page {
 	 * @see WP_Options_Page::maybe_open_or_close_table()
 	 * @var bool
 	 */
-	protected $table_is_open = null;
+	protected $table_is_open = false;
 
 	/**
 	 * @since 0.1.0
@@ -205,7 +203,7 @@ class WP_Options_Page {
 	 * The intention is that it will be used by other developers to choose whether or not to activate a feature.
 	 *
 	 * @since 0.3.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $supports = [];
 
@@ -214,11 +212,11 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	public function init () {
-		if ( ! did_action( 'init' ) ) {
-			throw new \Exception( 'Please, don\'t use the ' . get_class( $this ) . ' class before "init" hook.' );
+		if ( ! \did_action( 'init' ) ) {
+			throw new \Exception( 'Please, don\'t use the ' . \get_class( $this ) . ' class before "init" hook.' );
 		}
 		if ( ! $this->id ) {
-			throw new \Exception( 'Missing $id in ' . get_class( $this ) );
+			throw new \Exception( 'Missing $id in ' . \get_class( $this ) );
 		}
 
 		$this->menu_title = $this->menu_title ?? $this->id;
@@ -227,11 +225,11 @@ class WP_Options_Page {
 		$this->field_prefix = $this->field_prefix ?? $this->id . '_';
 		$this->hook_prefix = $this->hook_prefix ?? $this->field_prefix;
 
-		$this->strings = array_merge(
+		$this->strings = \array_merge(
 			[
 				'notice_error' => '<strong>Error</strong>: %s',
 				'checkbox_enable' => 'Enable',
-				'options_updated' => '<strong>' . __( 'Settings saved.' ) . '</strong>',
+				'options_updated' => '<strong>' . \__( 'Settings saved.' ) . '</strong>',
 			],
 			$this->strings
 		);
@@ -248,8 +246,8 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function init_hooks () {
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-		add_action( 'admin_menu', [ $this, 'add_menu_page' ], $this->menu_priority );
+		\add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		\add_action( 'admin_menu', [ $this, 'add_menu_page' ], $this->menu_priority );
 	}
 
 	/**
@@ -257,8 +255,8 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	public function init_fields () {
-		$this->fields = apply_filters(
-			$this->hook_prefix . 'get_fields',
+		$this->fields = $this->apply_filters(
+			'get_fields',
 			$this->fields ? $this->fields : $this->get_fields(),
 			$this
 		);
@@ -269,8 +267,8 @@ class WP_Options_Page {
 		}
 
 		if ( $this->insert_title ) {
-			$primary_title = apply_filters(
-				$this->hook_prefix . 'top_page_title',
+			$primary_title = $this->apply_filters(
+				'top_page_title',
 				[
 					'type' => 'title',
 					'title' => $this->page_title,
@@ -280,13 +278,15 @@ class WP_Options_Page {
 				$this
 			);
 			if ( $primary_title ) {
-				array_unshift( $this->fields, $primary_title );
+				\array_unshift( $this->fields, $primary_title );
 			}
 		}
 
 		$has_submit = false;
 		foreach ( $this->fields as $key => $field ) {
-			$this->fields[ $key ] = $this->prepare_field( $field );
+			$field = $this->prepare_field( $field );
+			if ( ! $field ) continue;
+			$this->fields[ $key ] = $field;
 			if ( ! $has_submit && 'submit' === $field['type'] ) $has_submit = true;
 		}
 
@@ -343,8 +343,8 @@ class WP_Options_Page {
 		return [
 			[
 				'type' => 'subtitile',
-				'title' => 'Alert',
-				'description' => 'Overrides the <code>' . __METHOD__ . '</code> to display your own fields.',
+				'title' => 'Hey!',
+				'description' => 'You not defined any field for this page.',
 			],
 		];
 	}
@@ -358,8 +358,8 @@ class WP_Options_Page {
 		if ( isset( $field['value'] ) ) {
 			return $field['value'];
 		}
-		return apply_filters(
-			$this->hook_prefix . 'get_field_value',
+		return $this->apply_filters(
+			'get_field_value',
 			$this->get_option( $field['id'] ),
 			$field,
 			$this
@@ -372,8 +372,8 @@ class WP_Options_Page {
 	 * @return mixed
 	 */
 	public function get_field_default_value ( $field_id ) {
-		return apply_filters(
-			$this->hook_prefix . 'get_field_default_value',
+		return $this->apply_filters(
+			'get_field_default_value',
 			$this->default_values[ $field_id ] ?? false,
 			$field_id,
 			$this
@@ -387,7 +387,7 @@ class WP_Options_Page {
 	 */
 	public function get_option ( $field_id ) {
 		$default = $this->get_field_default_value( $field_id );
-		$options = get_option( $this->option_name, [] );
+		$options = \get_option( $this->option_name, [] );
 		return $options[ $field_id ] ?? $default;
 	}
 
@@ -475,7 +475,7 @@ class WP_Options_Page {
 			'__validate' => null,
 			'__is_input' => true,
 		];
-		$field = array_merge( $defaults, $field );
+		$field = \array_merge( $defaults, $field );
 		$field['name'] = $this->get_field_name( $field );
 
 		switch ( $field['type'] ) {
@@ -492,7 +492,7 @@ class WP_Options_Page {
 				break;
 		}
 
-		return apply_filters( $this->hook_prefix . 'prepare_field', $field );
+		return $this->apply_filters( 'prepare_field', $field );
 	}
 
 	/**
@@ -503,10 +503,10 @@ class WP_Options_Page {
 	public function enqueue_scripts ( $hook_suffix ) {
 		if ( $this->hook_suffix !== $hook_suffix ) return;
 		foreach ( $this->scripts as $params ) {
-			call_user_func_array( 'wp_enqueue_script', $params );
+			\call_user_func_array( 'wp_enqueue_script', $params );
 		}
 		foreach ( $this->styles as $params ) {
-			call_user_func_array( 'wp_enqueue_style', $params );
+			\call_user_func_array( 'wp_enqueue_style', $params );
 		}
 	}
 
@@ -516,15 +516,15 @@ class WP_Options_Page {
 	 */
 	public function handle_options () {
 		if ( 'POST' !== $_SERVER['REQUEST_METHOD'] ) return;
-		if ( ! is_admin() ) return;
+		if ( ! \is_admin() ) return;
 		if ( $this->id !== ( $_REQUEST['page'] ?? '' ) ) return;
 
 		$nonce = $_REQUEST[ $this->get_nonce_name() ] ?? '';
 		$action = $this->get_nonce_action();
-		$invalid_nonce = ! wp_verify_nonce( $nonce, $action );
-		$invalid_user = ! current_user_can( $this->capability );
+		$invalid_nonce = ! \wp_verify_nonce( $nonce, $action );
+		$invalid_user = ! \current_user_can( $this->capability );
 		if ( $invalid_nonce || $invalid_user ) {
-			wp_die( __( 'Sorry, you are not allowed to access this page.' ), 403 );
+			\wp_die( \__( 'Sorry, you are not allowed to access this page.' ), 403 );
 		}
 
 		$options = [];
@@ -558,10 +558,10 @@ class WP_Options_Page {
 			// maybe sanitize
 			$sanitize = $field['__sanitize'] ?? '';
 			if ( $sanitize ) {
-				if ( is_scalar( $value ) ) {
+				if ( \is_scalar( $value ) ) {
 					$value = $sanitize( $value );
 				} else {
-					$value = maybe_unserialize( $sanitize( serialize( $value ) ) );
+					$value = \maybe_unserialize( $sanitize( \serialize( $value ) ) );
 				}
 			}
 
@@ -573,7 +573,7 @@ class WP_Options_Page {
 			];
 		}
 
-		$options = apply_filters( $this->hook_prefix . 'updated_options', $options, $this );
+		$options = $this->apply_filters( 'updated_options', $options, $this );
 
 		if ( count( $options ) > 0 ) {
 			$updated = $this->update_options( $options );
@@ -593,7 +593,7 @@ class WP_Options_Page {
 	 * @return string
 	 */
 	public function format_error_message ( $error, $field ) {
-		return sprintf(
+		return \sprintf(
 			$this->strings['notice_error'],
 			$error
 		);
@@ -605,12 +605,12 @@ class WP_Options_Page {
 	 * @return bool
 	 */
 	public function update_options ( $options ) {
-		$old = get_option( $this->option_name );
-		$values = is_array( $old ) ? $old : [];
+		$old = \get_option( $this->option_name );
+		$values = \is_array( $old ) ? $old : [];
 		foreach ( $options as $data ) {
 			$values[ $data['id'] ] = $data['value'];
 		}
-		return update_option( $this->option_name, $values );
+		return \update_option( $this->option_name, $values );
 	}
 
 	/**
@@ -623,7 +623,7 @@ class WP_Options_Page {
 		if ( $this->menu_parent && 'woocommerce' !== $this->menu_parent ) {
 			$path = $this->menu_parent;
 		}
-		return admin_url( $path . '?page=' . $this->id );
+		return \admin_url( $path . '?page=' . $this->id );
 	}
 
 	/**
@@ -635,7 +635,7 @@ class WP_Options_Page {
 		<div class="wrap">
 			<?php $this->do_action( 'before_render_form', $this ); ?>
 
-			<form method="post" action="<?= esc_attr( remove_query_arg( '_wp_http_referer' ) ) ?>" novalidate="novalidate">
+			<form method="post" action="<?php echo \esc_attr( \remove_query_arg( '_wp_http_referer' ) ); ?>" novalidate="novalidate">
 				<?php $this->render_notices() ?>
 				<?php $this->render_nonce() ?>
 				<?php $this->render_all_fields() ?>
@@ -656,11 +656,11 @@ class WP_Options_Page {
 			$type = $notice['type'] ?? 'error';
 			$class = $notice['class'] ?? '';
 			$page_class = 'options-page-' . $this->id;
-			printf(
+			\printf(
 				'<div class="%s notice notice-%s %s"><p>%s</p></div>',
-				esc_attr( $page_class ),
-				esc_attr( $type ),
-				esc_attr( $class ),
+				\esc_attr( $page_class ),
+				\esc_attr( $type ),
+				\esc_attr( $class ),
 				$message
 			);
 		}
@@ -671,7 +671,7 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_nonce () {
-		wp_nonce_field(
+		\wp_nonce_field(
 			$this->get_nonce_action(),
 			$this->get_nonce_name(),
 		);
@@ -712,11 +712,11 @@ class WP_Options_Page {
 	 * @return string
 	 */
 	protected function get_icon ( $icon ) {
-		$icon = esc_attr( trim( $icon ) );
-		if ( 0 === strpos( $icon, 'dashicons-' ) ) {
+		$icon = \esc_attr( trim( $icon ) );
+		if ( 0 === \strpos( $icon, 'dashicons-' ) ) {
 			return " <span class=\"dashicons $icon\" aria-hidden=\"true\"></span>";
 		}
-		if ( 0 === strpos( $icon, 'data:image/' ) || 0 === strpos( $icon, 'https://' ) ) {
+		if ( 0 === \strpos( $icon, 'data:image/' ) || 0 === \strpos( $icon, 'https://' ) ) {
 			return " <img src=\"$icon\" aria-hidden=\"true\">";
 		}
 		if ( $icon ) {
@@ -735,16 +735,16 @@ class WP_Options_Page {
 		$method = 'render_field_' . $type;
 		$this->maybe_open_or_close_table( $field );
 		$this->do_action( 'before_render_field', $field, $this );
-		if ( method_exists( $this, $method ) ) {
+		if ( \method_exists( $this, $method ) ) {
 			$this->$method( $field );
 		} else {
-			ob_start();
+			\ob_start();
 			$this->do_action( 'render_field_'  . $type, $field, $this );
-			$output = ob_get_clean();
+			$output = \ob_get_clean();
 			if ( $output ) {
 				echo $output;
 			} else {
-				throw new Exception( "Invalid field type \"{$field['type']}\" in " . get_class( $this ) );
+				throw new \Exception( "Invalid field type \"{$field['type']}\" in " . \get_class( $this ) );
 			}
 		}
 		$this->do_action( 'after_render_field', $field, $this );
@@ -763,7 +763,7 @@ class WP_Options_Page {
 		?>
 		<tr>
 			<th scope="row">
-				<label for="<?= esc_attr( $name ); ?>"><?= esc_html( $title ) . $icon ?></label>
+				<label for="<?php echo \esc_attr( $name ); ?>"><?php echo \esc_html( $title ) . $icon ?></label>
 			</th>
 			<td>
 		<?php
@@ -794,17 +794,17 @@ class WP_Options_Page {
 		$type = $field['input_type'] ?? 'text';
 		$placeholder = $field['placeholder'] ?? '';
 		$desc = $field['description'];
-		$describedby = $desc ? 'aria-describedby="' . esc_attr( $id ) . '-description"' : '';
+		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
 
 		$this->open_wrapper( $field );
 		?>
 
-		<input name="<?= esc_attr( $name ); ?>" type="<?= esc_attr( $type ) ?>" id="<?= esc_attr( $name ); ?>" <?= $describedby ?> value="<?= esc_attr( $value ); ?>" class="<?= esc_attr( $class ); ?>" placeholder="<?= esc_attr( $placeholder ) ?>">
+		<input name="<?php echo \esc_attr( $name ); ?>" type="<?php echo \esc_attr( $type ) ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> value="<?php echo \esc_attr( $value ); ?>" class="<?php echo \esc_attr( $class ); ?>" placeholder="<?php echo \esc_attr( $placeholder ) ?>">
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
 		<?php if ( $desc ) : ?>
-		<p class="description" id="<?= esc_attr( $name ); ?>-description"><?= $desc ?></p>
+		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
 		<?php endif ?>
 
 		<?php $this->close_wrapper( $field );
@@ -822,18 +822,18 @@ class WP_Options_Page {
 		$class = $field['class'] ?? 'large-text';
 		$placeholder = $field['placeholder'] ?? '';
 		$desc = $field['description'];
-		$describedby = $desc ? 'aria-describedby="' . esc_attr( $id ) . '-description"' : '';
+		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
 		$rows = $field['rows'] ?? 5;
 
 		$this->open_wrapper( $field );
 		?>
 
-		<textarea name="<?= esc_attr( $name ); ?>" id="<?= esc_attr( $name ); ?>" <?= $describedby ?> class="<?= esc_attr( $class ); ?>" placeholder="<?= esc_attr( $placeholder ) ?>" rows="<?= esc_attr( $rows ) ?>"><?= esc_html( $value ); ?></textarea>
+		<textarea name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>" placeholder="<?php echo \esc_attr( $placeholder ) ?>" rows="<?php echo \esc_attr( $rows ) ?>"><?php echo \esc_html( $value ); ?></textarea>
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
 		<?php if ( $desc ) : ?>
-		<p class="description" id="<?= esc_attr( $name ); ?>-description"><?= $desc ?></p>
+		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
 		<?php endif; ?>
 
 		<?php $this->close_wrapper( $field );
@@ -850,21 +850,21 @@ class WP_Options_Page {
 		$value = $this->get_field_value( $field );
 		$class = $field['class'] ?? '';
 		$desc = $field['description'] ?? false;
-		$describedby = $desc ? 'aria-describedby="' . esc_attr( $id ) . '-description"' : '';
+		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
 
 		$this->open_wrapper( $field );
 		?>
 
-		<select name="<?= esc_attr( $name ); ?>" id="<?= esc_attr( $name ); ?>" <?= $describedby ?> class="<?= esc_attr( $class ); ?>">
+		<select name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>">
 			<?php foreach ( $field['options'] as $opt_value => $opt_label ) : ?>
-				<option value="<?= esc_attr( $opt_value ); ?>" <?php selected( $opt_value, $value ) ?>><?= esc_html( $opt_label ) ?></option>
+				<option value="<?php echo \esc_attr( $opt_value ); ?>" <?php \selected( $opt_value, $value ) ?>><?php echo \esc_html( $opt_label ) ?></option>
 			<?php endforeach; ?>
 		</select>
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
 		<?php if ( $desc ) : ?>
-		<p class="description" id="<?= esc_attr( $id ); ?>-description"><?= $desc ?></p>
+		<p class="description" id="<?php echo \esc_attr( $id ); ?>-description"><?php echo $desc ?></p>
 		<?php endif ?>
 
 		<?php $this->close_wrapper( $field );
@@ -887,13 +887,13 @@ class WP_Options_Page {
 		?>
 
 		<fieldset>
-			<legend class="screen-reader-text"><span><?= esc_html( strip_tags( $title ) ); ?></span></legend>
+			<legend class="screen-reader-text"><span><?php echo \esc_html( \strip_tags( $title ) ); ?></span></legend>
 
 			<?php foreach ( $options as $key => $label ) :
-				$option_id = esc_attr( $id . '_' . $key ); ?>
-				<label for="<?= $option_id ?>">
-					<input name="<?= esc_attr( $name ) ?>" type="radio" id="<?= esc_attr( $option_id ) ?>" value="<?= esc_attr( $key ) ?>" <?php checked( $key, $value ); ?>>
-					<?= $label ?>
+				$option_id = \esc_attr( $id . '_' . $key ); ?>
+				<label for="<?php echo \esc_attr( $option_id ) ?>">
+					<input name="<?php echo \esc_attr( $name ) ?>" type="radio" id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $key ) ?>" <?php \checked( $key, $value ); ?>>
+					<?php echo $label ?>
 				</label>
 				<br>
 			<?php endforeach ?>
@@ -901,7 +901,7 @@ class WP_Options_Page {
 			<?php $this->do_action( 'after_field_input', $field ); ?>
 
 			<?php if ( $desc ) : ?>
-			<p class="description"><?= $desc ?></p>
+			<p class="description"><?php echo $desc ?></p>
 			<?php endif ?>
 		</fieldset>
 
@@ -925,16 +925,16 @@ class WP_Options_Page {
 		?>
 
 		<fieldset>
-			<legend class="screen-reader-text"><span><?= esc_html( strip_tags( $title ) ); ?></span></legend>
-			<label for="<?= $name ?>">
-				<input name="<?= esc_attr( $name ) ?>" type="checkbox" id="<?= esc_attr( $name ) ?>" value="1" <?php checked( $value ); ?> />
-				<?= $label ?>
+			<legend class="screen-reader-text"><span><?php echo \esc_html( strip_tags( $title ) ); ?></span></legend>
+			<label for="<?php echo \esc_attr( $name ) ?>">
+				<input name="<?php echo \esc_attr( $name ) ?>" type="checkbox" id="<?php echo \esc_attr( $name ) ?>" value="1" <?php \checked( $value ); ?> />
+				<?php echo $label ?>
 			</label>
 
 			<?php $this->do_action( 'after_field_input', $field ); ?>
 
 			<?php if ( $desc ) : ?>
-			<p class="description"><?= $desc ?></p>
+			<p class="description"><?php echo $desc ?></p>
 			<?php endif ?>
 		</fieldset>
 
@@ -959,14 +959,14 @@ class WP_Options_Page {
 		?>
 
 		<fieldset>
-			<legend class="screen-reader-text"><span><?= esc_html( strip_tags( $title ) ); ?></span></legend>
+			<legend class="screen-reader-text"><span><?php echo \esc_html( strip_tags( $title ) ); ?></span></legend>
 
 			<?php foreach ( $options as $key => $label ) :
-				$option_id = esc_attr( $id . '_' . $key );
-				$checked = in_array( $key, $value ) ? 'checked="checked"' : '' ?>
-				<label for="<?= $option_id ?>">
-					<input name="<?= esc_attr( $name ) . '[]' ?>" type="checkbox" id="<?= esc_attr( $option_id ) ?>" value="<?= esc_attr( $key ) ?>" <?= $checked ?>>
-					<?= $label ?>
+				$option_id = \esc_attr( $id . '_' . $key );
+				$checked = \in_array( $key, $value ) ? 'checked="checked"' : '' ?>
+				<label for="<?php echo \esc_attr( $option_id ) ?>">
+					<input name="<?php echo \esc_attr( $name ) . '[]' ?>" type="checkbox" id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $key ) ?>" <?php echo $checked ?>>
+					<?php echo $label ?>
 				</label>
 				<br>
 			<?php endforeach ?>
@@ -974,7 +974,7 @@ class WP_Options_Page {
 			<?php $this->do_action( 'after_field_input', $field ); ?>
 
 			<?php if ( $desc ) : ?>
-			<p class="description"><?= $desc ?></p>
+			<p class="description"><?php echo $desc ?></p>
 			<?php endif ?>
 		</fieldset>
 
@@ -992,9 +992,9 @@ class WP_Options_Page {
 		$desc = $field['description'];
 		$class = $field['class'] ?? '';
 		?>
-		<h1 id="<?= esc_attr( $id ) ?>" class="<?= esc_attr( $class ) ?>"><?= esc_html( $field['title'] ) . $icon ?></h1>
+		<h1 id="<?php echo \esc_attr( $id ) ?>" class="<?php echo \esc_attr( $class ) ?>"><?php echo \esc_html( $field['title'] ) . $icon ?></h1>
 		<?php if ( $desc ) : ?>
-		<p><?= $desc ?></p>
+		<p><?php echo $desc ?></p>
 		<?php endif ?>
 		<?php
 	}
@@ -1010,9 +1010,10 @@ class WP_Options_Page {
 		$desc = $field['description'];
 		$class = $field['class'] ?? '';
 		?>
-		<h2 id="<?= esc_attr( $id ) ?>" class="<?= esc_attr( $class ) ?>"><?= esc_html( $field['title'] ) . $icon ?></h2>
+		<h2 id="<?php echo esc_attr( $id ) ?>" class="<?php echo \esc_attr( $class ) ?>"><?php echo \esc_html( $field['title'] ) . $icon ?></h2>
+
 		<?php if ( $desc ) : ?>
-		<p><?= $desc ?></p>
+		<p><?php echo $desc ?></p>
 		<?php endif ?>
 		<?php
 	}
@@ -1023,11 +1024,11 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_field_submit ( $field ) {
-		$title = $field['title'] ?? __( 'Save Changes' );
+		$title = $field['title'] ?? \__( 'Save Changes' );
 		$class = $field['class'] ?? 'button button-primary';
 		?>
 		<p class="submit">
-			<input type="submit" name="submit" id="submit" class="<?= esc_attr( $class ) ?>" value="<?= esc_attr( $title ) ?>">
+			<input type="submit" name="submit" id="submit" class="<?php echo \esc_attr( $class ) ?>" value="<?php echo \esc_attr( $title ) ?>">
 		</p>
 		<?php
 	}
@@ -1058,7 +1059,7 @@ class WP_Options_Page {
 
 	/**
 	 * @since 0.3.0
-	 * @param string $action
+	 * @param string $hook_name
 	 * @param mixed ...$args
 	 * @return void
 	 */
@@ -1068,12 +1069,12 @@ class WP_Options_Page {
 
 	/**
 	 * @since 0.3.0
-	 * @param string $action
+	 * @param string $hook_name
 	 * @param mixed $value
 	 * @param mixed ...$args
 	 * @return mixed The filtered value
 	 */
 	public function apply_filters ( $hook_name, $value, ...$args ) {
-		\apply_filters( $this->hook_prefix . $hook_name, ...$args );
+		return \apply_filters( $this->hook_prefix . $hook_name, ...$args );
 	}
 }
