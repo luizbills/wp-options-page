@@ -34,5 +34,19 @@
     },
     "require": {
         "php": ">=7.4"
+    },
+    "require-dev": {
+        "szepeviktor/phpstan-wordpress": "^1.1",
+        "phpstan/phpstan": "^1.10"
+    },
+    "scripts": {
+        "check": "phpstan analyse"
+    },
+    "archive": {
+        "exclude": [
+            "/tests",
+            ".editorconfig",
+            "phpstan.neon"
+        ]
     }
 }
