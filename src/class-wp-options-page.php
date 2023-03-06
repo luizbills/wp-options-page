@@ -492,6 +492,8 @@ class WP_Options_Page {
 				break;
 		}
 
+		$field = $this->apply_filters( 'prepare_field_' . $field['type'], $field );
+
 		return $this->apply_filters( 'prepare_field', $field );
 	}
 
