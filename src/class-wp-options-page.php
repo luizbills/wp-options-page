@@ -1075,6 +1075,6 @@ class WP_Options_Page {
 	 * @return mixed The filtered value
 	 */
 	public function apply_filters ( $hook_name, $value, ...$args ) {
-		return \apply_filters( $this->hook_prefix . $hook_name, ...$args );
+		return \apply_filters( $this->hook_prefix . $hook_name, $value, ...$args );
 	}
 }
