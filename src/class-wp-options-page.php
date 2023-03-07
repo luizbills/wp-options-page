@@ -798,8 +798,8 @@ class WP_Options_Page {
 		$atts['type'] = $field['input_type'] ?? 'text';
 		$atts['id'] = $name;
 		$atts['name'] = $atts['id'];
-		$atts['class'] = $field['class'] ?? 'regular-text';
 		$atts['value'] = $this->get_field_value( $field );
+		$atts['class'] = $field['class'] ?? 'regular-text';
 		$atts['placeholder'] = $field['placeholder'] ?? false;
 		$atts['aria-describedby'] = $desc ? \esc_attr( $id ) . '-description' : false;
 
