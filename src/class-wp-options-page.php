@@ -1097,7 +1097,7 @@ class WP_Options_Page {
 		foreach ( $atts as $name => $value ) {
 			if ( ! \is_scalar( $value ) ) throw new \Exception( "Invalid non-scalar value at key \"$name\" in " . __METHOD__ );
 
-			if ( null === $value || false === $value ) continue;
+			if ( in_array( $value, [ false, null ], true ) ) continue;
 			if ( true === $value ) $value = '';
 
 			$result .= ' ' . \esc_html( $name );
