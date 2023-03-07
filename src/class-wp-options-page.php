@@ -471,6 +471,7 @@ class WP_Options_Page {
 			'description' => '',
 			'options' => [],
 			'default' => '',
+			'attributes' => [],
 			'__sanitize' => null,
 			'__validate' => null,
 			'__is_input' => true,
@@ -791,17 +792,21 @@ class WP_Options_Page {
 	protected function render_field_text ( $field ) {
 		$id = $field['id'];
 		$name = $field['name'];
-		$value = $this->get_field_value( $field );
-		$class = $field['class'] ?? 'regular-text';
-		$type = $field['input_type'] ?? 'text';
-		$placeholder = $field['placeholder'] ?? '';
 		$desc = $field['description'];
-		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
+
+		$atts = $field['attributes'] ?? [];
+		$atts['type'] = $field['input_type'] ?? 'text';
+		$atts['id'] = $name;
+		$atts['name'] = $atts['id'];
+		$atts['class'] = $field['class'] ?? 'regular-text';
+		$atts['value'] = $this->get_field_value( $field );
+		$atts['placeholder'] = $field['placeholder'] ?? false;
+		$atts['aria-describedby'] = $desc ? \esc_attr( $id ) . '-description' : false;
 
 		$this->open_wrapper( $field );
 		?>
 
-		<input name="<?php echo \esc_attr( $name ); ?>" type="<?php echo \esc_attr( $type ) ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> value="<?php echo \esc_attr( $value ); ?>" class="<?php echo \esc_attr( $class ); ?>" placeholder="<?php echo \esc_attr( $placeholder ) ?>">
+		<input <?php echo $atts; ?>>
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
@@ -826,11 +831,12 @@ class WP_Options_Page {
 		$desc = $field['description'];
 		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
 		$rows = $field['rows'] ?? 5;
+		$atts = self::parse_tag_atts( $field['attributes'] );
 
 		$this->open_wrapper( $field );
 		?>
 
-		<textarea name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>" placeholder="<?php echo \esc_attr( $placeholder ) ?>" rows="<?php echo \esc_attr( $rows ) ?>"><?php echo \esc_html( $value ); ?></textarea>
+		<textarea <?php echo $atts; ?> name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>" placeholder="<?php echo \esc_attr( $placeholder ) ?>" rows="<?php echo \esc_attr( $rows ) ?>"><?php echo \esc_html( $value ); ?></textarea>
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
@@ -853,11 +859,12 @@ class WP_Options_Page {
 		$class = $field['class'] ?? '';
 		$desc = $field['description'] ?? false;
 		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
+		$atts = self::parse_tag_atts( $field['attributes'] );
 
 		$this->open_wrapper( $field );
 		?>
 
-		<select name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>">
+		<select <?php echo $atts; ?> name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>">
 			<?php foreach ( $field['options'] as $opt_value => $opt_label ) : ?>
 				<option value="<?php echo \esc_attr( $opt_value ); ?>" <?php \selected( $opt_value, $value ) ?>><?php echo \esc_html( $opt_label ) ?></option>
 			<?php endforeach; ?>
@@ -1078,5 +1085,26 @@ class WP_Options_Page {
 	 */
 	public function apply_filters ( $hook_name, $value, ...$args ) {
 		return \apply_filters( $this->hook_prefix . $hook_name, $value, ...$args );
+	}
+
+	/**
+	 * @since 0.3.0
+	 * @param array $atts
+	 * @return string
+	 */
+	public static function parse_tag_atts ( $atts ) {
+		$result = '';
+		foreach ( $atts as $name => $value ) {
+			if ( ! \is_scalar( $value ) ) throw new \Exception( "Invalid non-scalar value at key \"$name\" in " . __METHOD__ );
+
+			if ( null === $value || false === $value ) continue;
+			if ( true === $value ) $value = '';
+
+			$result .= ' ' . \esc_html( $name );
+			if ( $value ) {
+				$result .= '="' . \esc_attr( $value ) . '"'
+			}
+		}
+		return trim( $result );
 	}
 }
