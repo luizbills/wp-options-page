@@ -797,7 +797,7 @@ class WP_Options_Page {
 		$atts = $field['attributes'] ?? [];
 		$atts['type'] = $field['input_type'] ?? 'text';
 		$atts['id'] = $name;
-		$atts['name'] = $atts['id'];
+		$atts['name'] = $name;
 		$atts['value'] = $this->get_field_value( $field );
 		$atts['class'] = $field['class'] ?? 'regular-text';
 		$atts['placeholder'] = $field['placeholder'] ?? false;
