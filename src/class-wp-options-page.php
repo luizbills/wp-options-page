@@ -459,47 +459,6 @@ class WP_Options_Page {
 
 	/**
 	 * @since 0.1.0
-	 * @param array $field
-	 * @return array
-	 */
-	protected function prepare_field ( $field ) {
-		$defaults = [
-			'id' => null,
-			'type' => 'text',
-			'title' => null,
-			'title_icon' => null,
-			'description' => '',
-			'options' => [],
-			'default' => '',
-			'attributes' => [],
-			'__sanitize' => null,
-			'__validate' => null,
-			'__is_input' => true,
-		];
-		$field = \array_merge( $defaults, $field );
-		$field['name'] = $this->get_field_name( $field );
-
-		switch ( $field['type'] ) {
-			case 'title':
-			case 'subtitle':
-			case 'submit':
-				$field['__is_input'] = false;
-				break;
-			case 'textarea':
-				$field['__sanitize'] = 'sanitize_textarea_field';
-				break;
-			default:
-				$field['__sanitize'] = 'sanitize_text_field';
-				break;
-		}
-
-		$field = $this->apply_filters( 'prepare_field_' . $field['type'], $field );
-
-		return $this->apply_filters( 'prepare_field', $field );
-	}
-
-	/**
-	 * @since 0.1.0
 	 * @param string $hook_suffix
 	 * @return void
 	 */
@@ -731,6 +690,46 @@ class WP_Options_Page {
 	/**
 	 * @since 0.1.0
 	 * @param array $field
+	 * @return array
+	 */
+	protected function prepare_field ( $field ) {
+		$defaults = [
+			'id' => null,
+			'type' => 'text',
+			'title' => null,
+			'title_icon' => null,
+			'description' => '',
+			'default' => '',
+			'attributes' => [],
+			'__sanitize' => null,
+			'__validate' => null,
+			'__is_input' => true,
+		];
+		$field = \array_merge( $defaults, $field );
+		$field['name'] = $this->get_field_name( $field );
+
+		switch ( $field['type'] ) {
+			case 'title':
+			case 'subtitle':
+			case 'submit':
+				$field['__is_input'] = false;
+				break;
+			case 'textarea':
+				$field['__sanitize'] = 'sanitize_textarea_field';
+				break;
+			default:
+				$field['__sanitize'] = 'sanitize_text_field';
+				break;
+		}
+
+		$field = $this->apply_filters( 'prepare_field_' . $field['type'], $field );
+
+		return $this->apply_filters( 'prepare_field', $field );
+	}
+
+	/**
+	 * @since 0.1.0
+	 * @param array $field
 	 * @return void
 	 */
 	protected function render_field ( $field ) {
@@ -793,14 +792,15 @@ class WP_Options_Page {
 		$id = $field['id'];
 		$name = $field['name'];
 		$desc = $field['description'];
+		$value = $this->get_field_value( $field );
 
 		$atts = $field['attributes'] ?? [];
-		$atts['type'] = $field['input_type'] ?? 'text';
+		$atts['type'] = $atts['type'] ?? 'text';
 		$atts['id'] = $name;
 		$atts['name'] = $name;
-		$atts['value'] = $this->get_field_value( $field );
-		$atts['class'] = $field['class'] ?? 'regular-text';
-		$atts['placeholder'] = $field['placeholder'] ?? false;
+		$atts['value'] = $value;
+		$atts['class'] = $atts['class'] ?? 'regular-text';
+		$atts['placeholder'] = $atts['placeholder'] ?? false;
 		$atts['aria-describedby'] = $desc ? \esc_attr( $id ) . '-description' : false;
 
 		$this->open_wrapper( $field );
@@ -825,18 +825,21 @@ class WP_Options_Page {
 	protected function render_field_textarea ( $field ) {
 		$id = $field['id'];
 		$name = $field['name'];
-		$value = $this->get_field_value( $field );
-		$class = $field['class'] ?? 'large-text';
-		$placeholder = $field['placeholder'] ?? '';
 		$desc = $field['description'];
-		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
-		$rows = $field['rows'] ?? 5;
-		$atts = self::parse_tag_atts( $field['attributes'] );
+		$value = $this->get_field_value( $field );
+
+		$atts = $field['attributes'] ?? [];
+		$atts['id'] = $name;
+		$atts['name'] = $name;
+		$atts['class'] = $atts['class'] ?? 'large-text';
+		$atts['placeholder'] = $atts['placeholder'] ?? false;
+		$atts['rows'] = $atts['rows'] ?? 5;
+		$atts['aria-describedby'] = $desc ? \esc_attr( $id ) . '-description' : false;
 
 		$this->open_wrapper( $field );
 		?>
 
-		<textarea <?php echo $atts; ?> name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>" placeholder="<?php echo \esc_attr( $placeholder ) ?>" rows="<?php echo \esc_attr( $rows ) ?>"><?php echo \esc_html( $value ); ?></textarea>
+		<textarea <?php echo $atts; ?>><?php echo \esc_html( $value ); ?></textarea>
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
@@ -855,17 +858,21 @@ class WP_Options_Page {
 	protected function render_field_select ( $field ) {
 		$id = $field['id'];
 		$name = $field['name'];
+		$desc = $field['description'];
 		$value = $this->get_field_value( $field );
-		$class = $field['class'] ?? '';
-		$desc = $field['description'] ?? false;
-		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
-		$atts = self::parse_tag_atts( $field['attributes'] );
+		$options = $field['options'] ?? [];
+
+		$atts = $field['attributes'] ?? [];
+		$atts['id'] = $name;
+		$atts['name'] = $name;
+		$atts['class'] = $atts['class'] ?? 'regular-text';
+		$atts['aria-describedby'] = $desc ? \esc_attr( $id ) . '-description' : false;
 
 		$this->open_wrapper( $field );
 		?>
 
-		<select <?php echo $atts; ?> name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>">
-			<?php foreach ( $field['options'] as $opt_value => $opt_label ) : ?>
+		<select <?php echo $atts; ?>>
+			<?php foreach ( $options as $opt_value => $opt_label ) : ?>
 				<option value="<?php echo \esc_attr( $opt_value ); ?>" <?php \selected( $opt_value, $value ) ?>><?php echo \esc_html( $opt_label ) ?></option>
 			<?php endforeach; ?>
 		</select>
@@ -873,7 +880,7 @@ class WP_Options_Page {
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
 		<?php if ( $desc ) : ?>
-		<p class="description" id="<?php echo \esc_attr( $id ); ?>-description"><?php echo $desc ?></p>
+		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
 		<?php endif ?>
 
 		<?php $this->close_wrapper( $field );
@@ -898,11 +905,11 @@ class WP_Options_Page {
 		<fieldset>
 			<legend class="screen-reader-text"><span><?php echo \esc_html( \strip_tags( $title ) ); ?></span></legend>
 
-			<?php foreach ( $options as $key => $label ) :
-				$option_id = \esc_attr( $id . '_' . $key ); ?>
+			<?php foreach ( $options as $opt_value => $opt_label ) :
+				$option_id = \esc_attr( $id . '_' . $opt_value ); ?>
 				<label for="<?php echo \esc_attr( $option_id ) ?>">
-					<input name="<?php echo \esc_attr( $name ) ?>" type="radio" id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $key ) ?>" <?php \checked( $key, $value ); ?>>
-					<?php echo $label ?>
+					<input name="<?php echo \esc_attr( $name ) ?>" type="radio" id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $opt_value ) ?>" <?php \checked( $opt_value, $value ); ?>>
+					<span class="option-label"><?php echo $opt_label ?></span>
 				</label>
 				<br>
 			<?php endforeach ?>
@@ -937,7 +944,7 @@ class WP_Options_Page {
 			<legend class="screen-reader-text"><span><?php echo \esc_html( strip_tags( $title ) ); ?></span></legend>
 			<label for="<?php echo \esc_attr( $name ) ?>">
 				<input name="<?php echo \esc_attr( $name ) ?>" type="checkbox" id="<?php echo \esc_attr( $name ) ?>" value="1" <?php \checked( $value ); ?> />
-				<?php echo $label ?>
+				<span class="option-label"><?php echo $label ?></span>
 			</label>
 
 			<?php $this->do_action( 'after_field_input', $field ); ?>
@@ -970,12 +977,12 @@ class WP_Options_Page {
 		<fieldset>
 			<legend class="screen-reader-text"><span><?php echo \esc_html( strip_tags( $title ) ); ?></span></legend>
 
-			<?php foreach ( $options as $key => $label ) :
-				$option_id = \esc_attr( $id . '_' . $key );
-				$checked = \in_array( $key, $value ) ? 'checked="checked"' : '' ?>
+			<?php foreach ( $options as $opt_value => $opt_label ) :
+				$option_id = \esc_attr( $id . '_' . $opt_value );
+				$checked = \in_array( $opt_value, $value ) ? 'checked="checked"' : '' ?>
 				<label for="<?php echo \esc_attr( $option_id ) ?>">
-					<input name="<?php echo \esc_attr( $name ) . '[]' ?>" type="checkbox" id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $key ) ?>" <?php echo $checked ?>>
-					<?php echo $label ?>
+					<input name="<?php echo \esc_attr( $name ) . '[]' ?>" type="checkbox" id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $opt_value ) ?>" <?php echo $checked ?>>
+					<span class="option-label"><?php echo $opt_label ?></span>
 				</label>
 				<br>
 			<?php endforeach ?>
