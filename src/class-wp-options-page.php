@@ -1102,7 +1102,7 @@ class WP_Options_Page {
 
 			$result .= ' ' . \esc_html( $name );
 			if ( $value ) {
-				$result .= '="' . \esc_attr( $value ) . '"'
+				$result .= '="' . \esc_attr( $value ) . '"';
 			}
 		}
 		return trim( $result );
