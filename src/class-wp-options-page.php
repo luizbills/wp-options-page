@@ -806,7 +806,7 @@ class WP_Options_Page {
 		$this->open_wrapper( $field );
 		?>
 
-		<input <?php echo $atts; ?>>
+		<input <?php echo self::parse_tag_atts( $atts ); ?>>
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
