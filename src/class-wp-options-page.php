@@ -254,9 +254,6 @@ class WP_Options_Page {
 			$this->form_attributes
 		);
 
-		// force some <form> attributes
-		$this->form_attributes['method'] = 'POST';
-
 		$this->init_hooks();
 		$this->init_fields();
 		$this->handle_options();
@@ -618,6 +615,8 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	public function render_page () {
+		// force some <form> attributes
+		$this->form_attributes['method'] = 'POST';
 		$this->form_attributes['action'] = \remove_query_arg( '_wp_http_referer' );
 		?>
 		<div class="wrap">
@@ -634,10 +633,6 @@ class WP_Options_Page {
 			<?php $this->render_credits() ?>
 		</div>
 		<?php
-
-		if ( $this->credits ) {
-
-		}
 	}
 
 	/**
