@@ -773,7 +773,7 @@ class WP_Options_Page {
 	 * @param array $field
 	 * @return void
 	 */
-	protected function open_wrapper ( $field ) {
+	public function open_wrapper ( $field ) {
 		$id = $field['id'];
 		$name = $field['name'];
 		$title = $field['title'] ?? $id;
@@ -791,7 +791,7 @@ class WP_Options_Page {
 	 * @param array $field
 	 * @return void
 	 */
-	protected function close_wrapper ( $field ) {
+	public function close_wrapper ( $field ) {
 		?>
 			</td>
 		</tr>
