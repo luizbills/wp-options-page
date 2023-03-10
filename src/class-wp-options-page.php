@@ -1133,6 +1133,17 @@ class WP_Options_Page {
 	}
 
 	/**
+	 * Check if this instance page supports a given feature.
+	 *
+	 * @since 0.3.0
+	 * @param string $feature string The name of a feature to test support for.
+	 * @return bool True if the gateway supports the feature, false otherwise.
+	 */
+	public function supports ( $feature ) {
+		return \in_array( $feature, $this->supports );
+	}
+
+	/**
 	 * @since 0.3.0
 	 * @param array $atts
 	 * @return string
