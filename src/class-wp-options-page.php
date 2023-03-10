@@ -822,7 +822,7 @@ class WP_Options_Page {
 
 		<input <?php echo self::parse_tag_atts( $atts ); ?>>
 
-		<?php $this->do_action( 'after_field_input', $field ); ?>
+		<?php $this->do_action( 'after_field_input', $field, $this ); ?>
 
 		<?php if ( $desc ) : ?>
 		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
@@ -854,7 +854,7 @@ class WP_Options_Page {
 
 		<textarea <?php echo self::parse_tag_atts( $atts ); ?>><?php echo \esc_html( $value ); ?></textarea>
 
-		<?php $this->do_action( 'after_field_input', $field ); ?>
+		<?php $this->do_action( 'after_field_input', $field, $this ); ?>
 
 		<?php if ( $desc ) : ?>
 		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
@@ -889,7 +889,7 @@ class WP_Options_Page {
 			<?php endforeach; ?>
 		</select>
 
-		<?php $this->do_action( 'after_field_input', $field ); ?>
+		<?php $this->do_action( 'after_field_input', $field, $this ); ?>
 
 		<?php if ( $desc ) : ?>
 		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
@@ -935,7 +935,7 @@ class WP_Options_Page {
 				<br>
 			<?php endforeach ?>
 
-			<?php $this->do_action( 'after_field_input', $field ); ?>
+			<?php $this->do_action( 'after_field_input', $field, $this ); ?>
 
 			<?php if ( $desc ) : ?>
 			<p class="description"><?php echo $desc ?></p>
@@ -980,7 +980,7 @@ class WP_Options_Page {
 				<span class="option-label"><?php echo $label ?></span>
 			</label>
 
-			<?php $this->do_action( 'after_field_input', $field ); ?>
+			<?php $this->do_action( 'after_field_input', $field, $this ); ?>
 
 			<?php if ( $desc ) : ?>
 			<p class="description"><?php echo $desc ?></p>
@@ -1028,7 +1028,7 @@ class WP_Options_Page {
 				<br>
 			<?php endforeach ?>
 
-			<?php $this->do_action( 'after_field_input', $field ); ?>
+			<?php $this->do_action( 'after_field_input', $field, $this ); ?>
 
 			<?php if ( $desc ) : ?>
 			<p class="description"><?php echo $desc ?></p>
@@ -1076,13 +1076,13 @@ class WP_Options_Page {
 
 		?>
 		<p class="submit">
-			<?php $this->do_action( 'before_submit_button' ) ?>
+			<?php $this->do_action( 'before_submit_button', $this ) ?>
 
 			<button <?php echo self::parse_tag_atts( $atts );  ?>>
 				<?php echo \esc_html( $title ); ?>
 			</button>
 
-			<?php $this->do_action( 'after_submit_button' ) ?>
+			<?php $this->do_action( 'after_submit_button', $this ) ?>
 		</p>
 		<?php
 	}
