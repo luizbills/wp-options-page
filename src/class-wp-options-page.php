@@ -715,9 +715,9 @@ class WP_Options_Page {
 	 */
 	protected function prepare_field ( $field ) {
 		$defaults = [
-			'id' => null,
+			'id' => '',
 			'type' => 'text',
-			'title' => null,
+			'title' => '',
 			'description' => '',
 			'default' => '',
 			'attributes' => [],
@@ -743,8 +743,14 @@ class WP_Options_Page {
 		}
 
 		$field = $this->apply_filters( 'prepare_field_' . $field['type'], $field, $this );
+		$field = $this->apply_filters( 'prepare_field', $field, $this );
 
-		return $this->apply_filters( 'prepare_field', $field, $this );
+		$id = $field['id'];
+		if ( $field['__is_input'] && 'string' === gettype( $id ) && strlen( $id ) > 0 ) {
+			throw new \Exception( 'Missing field "id" property. All fields must have a string "id". ' );
+		}
+
+		return $field;
 	}
 
 	/**
