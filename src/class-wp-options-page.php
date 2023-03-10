@@ -85,8 +85,8 @@ class WP_Options_Page {
 	/**
 	 * The URL to the icon to be used for this menu.
 	 *   - Pass a base64-encoded SVG using a data URI, which will be colored to match the color scheme. This should begin with 'data:image/svg+xml;base64,'.
-     *   - Pass the name of a Dashicons helper class to use a font icon, e.g. 'dashicons-chart-pie'.
-     *   - Pass 'none' to leave div.wp-menu-image empty so an icon can be added via CSS.
+	 *   - Pass the name of a Dashicons helper class to use a font icon, e.g. 'dashicons-chart-pie'.
+	 *   - Pass 'none' to leave div.wp-menu-image empty so an icon can be added via CSS.
 	 *
 	 * @since 0.1.0
 	 * @see https://developer.wordpress.org/reference/functions/add_menu_page/#parameters
@@ -203,7 +203,7 @@ class WP_Options_Page {
 	 * The intention is that it will be used by other developers to choose whether or not to activate a feature.
 	 *
 	 * @since 0.3.0
-	 * @var string[]
+	 * @var array<string|int,mixed>
 	 */
 	public $supports = [];
 
@@ -254,11 +254,11 @@ class WP_Options_Page {
 			$this->form_attributes
 		);
 
+		\do_action( 'wp_options_page_init', $this );
+
 		$this->init_hooks();
 		$this->init_fields();
 		$this->handle_options();
-
-		\do_action( 'wp_options_page_init', $this );
 	}
 
 	/**
@@ -620,7 +620,7 @@ class WP_Options_Page {
 		$this->form_attributes['method'] = 'POST';
 		$this->form_attributes['action'] = \remove_query_arg( '_wp_http_referer' );
 		?>
-		<div class="wrap">
+		<div class="wrap <?php \esc_attr( $this->id ); ?>">
 			<?php $this->do_action( 'before_render_form', $this ); ?>
 
 			<form <?php echo self::parse_tag_atts( $this->form_attributes ); ?>>
@@ -647,7 +647,7 @@ class WP_Options_Page {
 			$class = $notice['class'] ?? '';
 			$page_class = 'options-page-' . $this->id;
 			\printf(
-				'<div class="%s notice notice-%s %s"><p>%s</p></div>',
+				'<div class="%s inline notice notice-%s %s"><p>%s</p></div>',
 				\esc_attr( $page_class ),
 				\esc_attr( $type ),
 				\esc_attr( $class ),
@@ -1140,7 +1140,7 @@ class WP_Options_Page {
 	 * @return bool True if the gateway supports the feature, false otherwise.
 	 */
 	public function supports ( $feature ) {
-		return \in_array( $feature, $this->supports );
+		return isset( $this->supports[ $feature ] ) || \in_array( $feature, $this->supports );
 	}
 
 	/**
