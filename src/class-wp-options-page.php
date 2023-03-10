@@ -738,9 +738,9 @@ class WP_Options_Page {
 				break;
 		}
 
-		$field = $this->apply_filters( 'prepare_field_' . $field['type'], $field );
+		$field = $this->apply_filters( 'prepare_field_' . $field['type'], $field, $this );
 
-		return $this->apply_filters( 'prepare_field', $field );
+		return $this->apply_filters( 'prepare_field', $field, $this );
 	}
 
 	/**
