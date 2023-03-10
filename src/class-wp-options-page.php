@@ -268,6 +268,9 @@ class WP_Options_Page {
 	protected function init_hooks () {
 		\add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		\add_action( 'admin_menu', [ $this, 'add_menu_page' ], $this->menu_priority );
+
+		// Removes slashes from a $_POST field values
+		$this->add_filter( 'posted_value', 'wp_unslash' );
 	}
 
 	/**
@@ -519,9 +522,10 @@ class WP_Options_Page {
 
 			$name = $field['name'];
 			$value = $_POST[ $name ] ?? '';
+			$value = $this->apply_filters( 'posted_value', $value, $name, $this );
 
 			// maybe validate
-			$validate = $field['@validate'] ?? '';
+			$validate = $field['@validate'] ?? null;
 			if ( $validate ) {
 				$error = false;
 				try {
@@ -541,7 +545,7 @@ class WP_Options_Page {
 			}
 
 			// maybe sanitize
-			$sanitize = $field['@sanitize'] ?? '';
+			$sanitize = $field['@sanitize'] ?? null;
 			if ( $sanitize ) {
 				if ( \is_scalar( $value ) ) {
 					$value = $sanitize( $value );
