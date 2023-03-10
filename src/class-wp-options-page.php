@@ -242,7 +242,8 @@ class WP_Options_Page {
 			[
 				'notice_error' => '<strong>Error</strong>: %s',
 				'checkbox_enable' => 'Enable',
-				'options_updated' => '<strong>' . \__( 'Settings saved.' ) . '</strong>',
+				'options_updated' => '<strong>' . \esc_html__( 'Settings saved.' ) . '</strong>',
+				'submit_button_label' => \esc_html__( 'Save Changes' ),
 			],
 			$this->strings
 		);
@@ -510,7 +511,7 @@ class WP_Options_Page {
 		$invalid_nonce = ! \wp_verify_nonce( $nonce, $action );
 		$invalid_user = ! \current_user_can( $this->capability );
 		if ( $invalid_nonce || $invalid_user ) {
-			\wp_die( \__( 'Sorry, you are not allowed to access this page.' ), 403 );
+			\wp_die( \esc_html__( 'Sorry, you are not allowed to access this page.' ), 403 );
 		}
 
 		$options = [];
@@ -1068,11 +1069,24 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_field_submit ( $field ) {
-		$title = $field['title'] ?? \__( 'Save Changes' );
-		$class = $field['class'] ?? 'button button-primary';
+		$title = $field['title'] ?? $this->strings['submit_button_label'];
+		$atts = $field['attributes'] ?? [];
+
+		$atts['type'] = 'submit';
+		$atts['name'] = $atts['name'] ?? 'submit';
+		$atts['id'] = $atts['id'] ?? $atts['name'];
+		$atts['class'] = $atts['class'] ?? 'button button-primary';
+		$atts['value'] = $atts['value'] ?? $title;
+
 		?>
 		<p class="submit">
-			<input type="submit" name="submit" id="submit" class="<?php echo \esc_attr( $class ) ?>" value="<?php echo \esc_attr( $title ) ?>">
+			<?php $this->do_action( 'before_submit_button' ) ?>
+
+			<button <?php echo self::parse_tag_atts( $atts );  ?>>
+				<?php echo \esc_html( $title ); ?>
+			</button>
+
+			<?php $this->do_action( 'after_submit_button' ) ?>
 		</p>
 		<?php
 	}
