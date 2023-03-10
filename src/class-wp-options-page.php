@@ -208,6 +208,20 @@ class WP_Options_Page {
 	public $supports = [];
 
 	/**
+	 * List of attributes of the <form> tag.
+	 *
+	 * @since 0.3.0
+	 * @var array<string, mixed>
+	 */
+	public $form_attributes = [];
+
+	/**
+	 * @since 0.3.0
+	 * @var boolean
+	 */
+	public $credits = true;
+
+	/**
 	 * @since 0.1.0
 	 * @return void
 	 */
@@ -224,14 +238,20 @@ class WP_Options_Page {
 		$this->option_name = $this->option_name ?? $this->id . '_options';
 		$this->field_prefix = $this->field_prefix ?? $this->id . '_';
 		$this->hook_prefix = $this->hook_prefix ?? $this->field_prefix;
-
 		$this->strings = \array_merge(
 			[
 				'notice_error' => '<strong>Error</strong>: %s',
 				'checkbox_enable' => 'Enable',
-				'options_updated' => '<strong>' . \__( 'Settings saved.' ) . '</strong>',
+				'options_updated' => '<strong>' . \esc_html__( 'Settings saved.' ) . '</strong>',
+				'submit_button_label' => \esc_html__( 'Save Changes' ),
 			],
 			$this->strings
+		);
+		$this->form_attributes = \array_merge(
+			[
+				'novalidate' => 'novalidate'
+			],
+			$this->form_attributes
 		);
 
 		$this->init_hooks();
@@ -272,8 +292,9 @@ class WP_Options_Page {
 				[
 					'type' => 'title',
 					'title' => $this->page_title,
+					'tag' => 'h1',
 					'description' => $this->page_description,
-					'class' => '',
+					'class' => 'page-title-top',
 				],
 				$this
 			);
@@ -342,9 +363,10 @@ class WP_Options_Page {
 	public function get_fields () {
 		return [
 			[
-				'type' => 'subtitile',
+				'type' => 'title',
+				'tag' => 'h2',
 				'title' => 'Hey!',
-				'description' => 'You not defined any field for this page.',
+				'description' => 'You not defined any field for this page yet.',
 			],
 		];
 	}
@@ -459,46 +481,6 @@ class WP_Options_Page {
 
 	/**
 	 * @since 0.1.0
-	 * @param array $field
-	 * @return array
-	 */
-	protected function prepare_field ( $field ) {
-		$defaults = [
-			'id' => null,
-			'type' => 'text',
-			'title' => null,
-			'title_icon' => null,
-			'description' => '',
-			'options' => [],
-			'default' => '',
-			'__sanitize' => null,
-			'__validate' => null,
-			'__is_input' => true,
-		];
-		$field = \array_merge( $defaults, $field );
-		$field['name'] = $this->get_field_name( $field );
-
-		switch ( $field['type'] ) {
-			case 'title':
-			case 'subtitle':
-			case 'submit':
-				$field['__is_input'] = false;
-				break;
-			case 'textarea':
-				$field['__sanitize'] = 'sanitize_textarea_field';
-				break;
-			default:
-				$field['__sanitize'] = 'sanitize_text_field';
-				break;
-		}
-
-		$field = $this->apply_filters( 'prepare_field_' . $field['type'], $field );
-
-		return $this->apply_filters( 'prepare_field', $field );
-	}
-
-	/**
-	 * @since 0.1.0
 	 * @param string $hook_suffix
 	 * @return void
 	 */
@@ -526,7 +508,7 @@ class WP_Options_Page {
 		$invalid_nonce = ! \wp_verify_nonce( $nonce, $action );
 		$invalid_user = ! \current_user_can( $this->capability );
 		if ( $invalid_nonce || $invalid_user ) {
-			\wp_die( \__( 'Sorry, you are not allowed to access this page.' ), 403 );
+			\wp_die( \esc_html__( 'Sorry, you are not allowed to access this page.' ), 403 );
 		}
 
 		$options = [];
@@ -539,10 +521,11 @@ class WP_Options_Page {
 			$value = $_POST[ $name ] ?? '';
 
 			// maybe validate
-			if ( $field['__validate'] ) {
+			$validate = $field['@validate'] ?? '';
+			if ( $validate ) {
 				$error = false;
 				try {
-					$field['__validate']( $value, $field );
+					$validate( $value, $field );
 					$this->do_action( 'validate_field_' . $field['type'], $field, $this );
 				} catch ( \Throwable $e ) {
 					$error = $e->getMessage();
@@ -558,7 +541,7 @@ class WP_Options_Page {
 			}
 
 			// maybe sanitize
-			$sanitize = $field['__sanitize'] ?? '';
+			$sanitize = $field['@sanitize'] ?? '';
 			if ( $sanitize ) {
 				if ( \is_scalar( $value ) ) {
 					$value = $sanitize( $value );
@@ -633,17 +616,22 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	public function render_page () {
+		// force some <form> attributes
+		$this->form_attributes['method'] = 'POST';
+		$this->form_attributes['action'] = \remove_query_arg( '_wp_http_referer' );
 		?>
 		<div class="wrap">
 			<?php $this->do_action( 'before_render_form', $this ); ?>
 
-			<form method="post" action="<?php echo \esc_attr( \remove_query_arg( '_wp_http_referer' ) ); ?>" novalidate="novalidate">
+			<form <?php echo self::parse_tag_atts( $this->form_attributes ); ?>>
 				<?php $this->render_notices() ?>
 				<?php $this->render_nonce() ?>
 				<?php $this->render_all_fields() ?>
 			</form>
 
 			<?php $this->do_action( 'after_render_form', $this ); ?>
+
+			<?php $this->render_credits() ?>
 		</div>
 		<?php
 	}
@@ -690,6 +678,14 @@ class WP_Options_Page {
 		}
 	}
 
+	protected function render_credits () {
+		if ( ! $this->credits ) return;
+
+		\add_filter( 'admin_footer_text', function () {
+			return '<span id="footer-thankyou">Powered by <a href="https://github.com/luizbills/wp-options-page" rel="nofollow noopener" target="_blank">WP Options Page</a>.</span>';
+		}, \PHP_INT_MAX );
+	}
+
 	/**
 	 * @since 0.1.0
 	 * @param array $field
@@ -710,21 +706,41 @@ class WP_Options_Page {
 
 	/**
 	 * @since 0.1.0
-	 * @param string $icon
-	 * @return string
+	 * @param array $field
+	 * @return array
 	 */
-	protected function get_icon ( $icon ) {
-		$icon = \esc_attr( trim( $icon ) );
-		if ( 0 === \strpos( $icon, 'dashicons-' ) ) {
-			return " <span class=\"dashicons $icon\" aria-hidden=\"true\"></span>";
+	protected function prepare_field ( $field ) {
+		$defaults = [
+			'id' => null,
+			'type' => 'text',
+			'title' => null,
+			'description' => '',
+			'default' => '',
+			'attributes' => [],
+			'@sanitize' => null,
+			'@validate' => null,
+			'__is_input' => true,
+		];
+		$field = \array_merge( $defaults, $field );
+		$field['name'] = $this->get_field_name( $field );
+
+		switch ( $field['type'] ) {
+			case 'title':
+			case 'subtitle':
+			case 'submit':
+				$field['__is_input'] = false;
+				break;
+			case 'textarea':
+				$field['@sanitize'] = 'sanitize_textarea_field';
+				break;
+			default:
+				$field['@sanitize'] = 'sanitize_text_field';
+				break;
 		}
-		if ( 0 === \strpos( $icon, 'data:image/' ) || 0 === \strpos( $icon, 'https://' ) ) {
-			return " <img src=\"$icon\" aria-hidden=\"true\">";
-		}
-		if ( $icon ) {
-			return " <span class=\"$icon\" aria-hidden=\"true\"></span>";
-		}
-		return '';
+
+		$field = $this->apply_filters( 'prepare_field_' . $field['type'], $field );
+
+		return $this->apply_filters( 'prepare_field', $field );
 	}
 
 	/**
@@ -761,11 +777,10 @@ class WP_Options_Page {
 		$id = $field['id'];
 		$name = $field['name'];
 		$title = $field['title'] ?? $id;
-		$icon = $this->get_icon( $field['title_icon'] );
 		?>
 		<tr>
 			<th scope="row">
-				<label for="<?php echo \esc_attr( $name ); ?>"><?php echo \esc_html( $title ) . $icon ?></label>
+				<label for="<?php echo \esc_attr( $name ); ?>"><?php echo \esc_html( $title ) ?></label>
 			</th>
 			<td>
 		<?php
@@ -789,19 +804,23 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_field_text ( $field ) {
-		$id = $field['id'];
 		$name = $field['name'];
-		$value = $this->get_field_value( $field );
-		$class = $field['class'] ?? 'regular-text';
-		$type = $field['input_type'] ?? 'text';
-		$placeholder = $field['placeholder'] ?? '';
 		$desc = $field['description'];
-		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
+		$value = $this->get_field_value( $field );
+
+		$atts = $field['attributes'] ?? [];
+		$atts['type'] = $atts['type'] ?? 'text';
+		$atts['id'] = $name;
+		$atts['name'] = $name;
+		$atts['value'] = $value;
+		$atts['class'] = $atts['class'] ?? 'regular-text';
+		$atts['placeholder'] = $atts['placeholder'] ?? false;
+		$atts['aria-describedby'] = $desc ? \esc_attr( $name ) . '-description' : false;
 
 		$this->open_wrapper( $field );
 		?>
 
-		<input name="<?php echo \esc_attr( $name ); ?>" type="<?php echo \esc_attr( $type ) ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> value="<?php echo \esc_attr( $value ); ?>" class="<?php echo \esc_attr( $class ); ?>" placeholder="<?php echo \esc_attr( $placeholder ) ?>">
+		<input <?php echo self::parse_tag_atts( $atts ); ?>>
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
@@ -818,19 +837,22 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_field_textarea ( $field ) {
-		$id = $field['id'];
 		$name = $field['name'];
-		$value = $this->get_field_value( $field );
-		$class = $field['class'] ?? 'large-text';
-		$placeholder = $field['placeholder'] ?? '';
 		$desc = $field['description'];
-		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
-		$rows = $field['rows'] ?? 5;
+		$value = $this->get_field_value( $field );
+
+		$atts = $field['attributes'] ?? [];
+		$atts['id'] = $name;
+		$atts['name'] = $name;
+		$atts['class'] = $atts['class'] ?? 'large-text';
+		$atts['placeholder'] = $atts['placeholder'] ?? false;
+		$atts['rows'] = $atts['rows'] ?? 5;
+		$atts['aria-describedby'] = $desc ? \esc_attr( $name ) . '-description' : false;
 
 		$this->open_wrapper( $field );
 		?>
 
-		<textarea name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>" placeholder="<?php echo \esc_attr( $placeholder ) ?>" rows="<?php echo \esc_attr( $rows ) ?>"><?php echo \esc_html( $value ); ?></textarea>
+		<textarea <?php echo self::parse_tag_atts( $atts ); ?>><?php echo \esc_html( $value ); ?></textarea>
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
@@ -847,18 +869,22 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_field_select ( $field ) {
-		$id = $field['id'];
 		$name = $field['name'];
+		$desc = $field['description'];
 		$value = $this->get_field_value( $field );
-		$class = $field['class'] ?? '';
-		$desc = $field['description'] ?? false;
-		$describedby = $desc ? 'aria-describedby="' . \esc_attr( $id ) . '-description"' : '';
+		$options = $field['options'] ?? [];
+
+		$atts = $field['attributes'] ?? [];
+		$atts['id'] = $name;
+		$atts['name'] = $name;
+		$atts['class'] = $atts['class'] ?? 'regular-text';
+		$atts['aria-describedby'] = $desc ? \esc_attr( $name ) . '-description' : false;
 
 		$this->open_wrapper( $field );
 		?>
 
-		<select name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>" <?php echo $describedby ?> class="<?php echo \esc_attr( $class ); ?>">
-			<?php foreach ( $field['options'] as $opt_value => $opt_label ) : ?>
+		<select <?php echo self::parse_tag_atts( $atts ); ?>>
+			<?php foreach ( $options as $opt_value => $opt_label ) : ?>
 				<option value="<?php echo \esc_attr( $opt_value ); ?>" <?php \selected( $opt_value, $value ) ?>><?php echo \esc_html( $opt_label ) ?></option>
 			<?php endforeach; ?>
 		</select>
@@ -866,7 +892,7 @@ class WP_Options_Page {
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
 		<?php if ( $desc ) : ?>
-		<p class="description" id="<?php echo \esc_attr( $id ); ?>-description"><?php echo $desc ?></p>
+		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
 		<?php endif ?>
 
 		<?php $this->close_wrapper( $field );
@@ -881,9 +907,18 @@ class WP_Options_Page {
 		$id = $field['id'];
 		$name = $field['name'];
 		$title = $field['title'] ?? $id;
+		$name = $field['name'];
 		$desc = $field['description'];
-		$options = $field['options'];
 		$value = $this->get_field_value( $field );
+		$options = $field['options'] ?? [];
+
+		$atts = $field['attributes'] ?? [];
+		$atts['type'] = 'radio';
+		$atts['name'] = $name;
+
+		unset( $atts['id'] );
+		unset( $atts['value'] );
+		unset( $atts['checked'] );
 
 		$this->open_wrapper( $field );
 		?>
@@ -891,11 +926,11 @@ class WP_Options_Page {
 		<fieldset>
 			<legend class="screen-reader-text"><span><?php echo \esc_html( \strip_tags( $title ) ); ?></span></legend>
 
-			<?php foreach ( $options as $key => $label ) :
-				$option_id = \esc_attr( $id . '_' . $key ); ?>
+			<?php foreach ( $options as $opt_value => $opt_label ) :
+				$option_id = \esc_attr( $id . '_' . $opt_value ); ?>
 				<label for="<?php echo \esc_attr( $option_id ) ?>">
-					<input name="<?php echo \esc_attr( $name ) ?>" type="radio" id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $key ) ?>" <?php \checked( $key, $value ); ?>>
-					<?php echo $label ?>
+					<input <?php echo self::parse_tag_atts( $atts ); ?> id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $opt_value ) ?>" <?php \checked( $opt_value, $value ); ?>>
+					<span class="option-label"><?php echo $opt_label ?></span>
 				</label>
 				<br>
 			<?php endforeach ?>
@@ -919,18 +954,30 @@ class WP_Options_Page {
 		$id = $field['id'];
 		$name = $field['name'];
 		$title = $field['title'] ?? $id;
-		$value = boolval( $this->get_field_value( $field ) );
+		$name = $field['name'];
 		$desc = $field['description'];
 		$label = $field['label'] ?? $this->strings['checkbox_enable'];
+		$value = (bool) $this->get_field_value( $field );
+
+		$atts = $field['attributes'] ?? [];
+		$atts['type'] = 'checkbox';
+		$atts['id'] = $name;
+		$atts['name'] = $name;
+		$atts['value'] = '1';
+
+		unset( $atts['value'] );
+		unset( $atts['checked'] );
 
 		$this->open_wrapper( $field );
 		?>
 
 		<fieldset>
-			<legend class="screen-reader-text"><span><?php echo \esc_html( strip_tags( $title ) ); ?></span></legend>
-			<label for="<?php echo \esc_attr( $name ) ?>">
-				<input name="<?php echo \esc_attr( $name ) ?>" type="checkbox" id="<?php echo \esc_attr( $name ) ?>" value="1" <?php \checked( $value ); ?> />
-				<?php echo $label ?>
+			<legend class="screen-reader-text">
+				<span><?php echo \esc_html( strip_tags( $title ) ); ?></span>
+			</legend>
+			<label for="<?php echo \esc_attr( $name ); ?>">
+				<input <?php echo self::parse_tag_atts( $atts ); ?> <?php \checked( $value ); ?>>
+				<span class="option-label"><?php echo $label ?></span>
 			</label>
 
 			<?php $this->do_action( 'after_field_input', $field ); ?>
@@ -957,18 +1004,26 @@ class WP_Options_Page {
 		$value = $this->get_field_value( $field );
 		$value = is_array( $value ) ? $value : [ $value ];
 
+		$atts = $field['attributes'] ?? [];
+		$atts['type'] = 'checkbox';
+		$atts['name'] = $name . '[]';
+
+		unset( $atts['id'] );
+		unset( $atts['value'] );
+		unset( $atts['checked'] );
+
 		$this->open_wrapper( $field );
 		?>
 
 		<fieldset>
 			<legend class="screen-reader-text"><span><?php echo \esc_html( strip_tags( $title ) ); ?></span></legend>
 
-			<?php foreach ( $options as $key => $label ) :
-				$option_id = \esc_attr( $id . '_' . $key );
-				$checked = \in_array( $key, $value ) ? 'checked="checked"' : '' ?>
+			<?php foreach ( $options as $opt_value => $opt_label ) :
+				$option_id = \esc_attr( $id . '_' . $opt_value );
+				$checked = \in_array( $opt_value, $value ) ? 'checked' : '' ?>
 				<label for="<?php echo \esc_attr( $option_id ) ?>">
-					<input name="<?php echo \esc_attr( $name ) . '[]' ?>" type="checkbox" id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $key ) ?>" <?php echo $checked ?>>
-					<?php echo $label ?>
+					<input <?php echo self::parse_tag_atts( $atts ); ?> id="<?php echo \esc_attr( $option_id ) ?>" value="<?php echo \esc_attr( $opt_value ) ?>" <?php echo $checked ?>>
+					<span class="option-label"><?php echo $opt_label ?></span>
 				</label>
 				<br>
 			<?php endforeach ?>
@@ -989,31 +1044,15 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_field_title ( $field ) {
-		$id = $field['id'] ? $this->field_prefix . $field['id'] : '';
-		$icon = $this->get_icon( $field['title_icon'] );
 		$desc = $field['description'];
-		$class = $field['class'] ?? '';
-		?>
-		<h1 id="<?php echo \esc_attr( $id ) ?>" class="<?php echo \esc_attr( $class ) ?>"><?php echo \esc_html( $field['title'] ) . $icon ?></h1>
-		<?php if ( $desc ) : ?>
-		<p><?php echo $desc ?></p>
-		<?php endif ?>
-		<?php
-	}
+		$tag = \esc_html( $field['tag'] ?? 'h2' );
+		$atts = $field['attributes'] ?? [];
 
-	/**
-	 * @since 0.1.0
-	 * @param array $field
-	 * @return void
-	 */
-	protected function render_field_subtitle ( $field ) {
-		$id = $field['id'] ? $this->field_prefix . $field['id'] : '';
-		$icon = $this->get_icon( $field['title_icon'] );
-		$desc = $field['description'];
-		$class = $field['class'] ?? '';
+		$title_html = "<{$tag} " . self::parse_tag_atts( $atts ) . '>';
+		$title_html .= $field['title'] ?? '';
+		$title_html .= "</{$tag}>";
 		?>
-		<h2 id="<?php echo esc_attr( $id ) ?>" class="<?php echo \esc_attr( $class ) ?>"><?php echo \esc_html( $field['title'] ) . $icon ?></h2>
-
+		<?php echo $title_html; ?>
 		<?php if ( $desc ) : ?>
 		<p><?php echo $desc ?></p>
 		<?php endif ?>
@@ -1026,11 +1065,24 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function render_field_submit ( $field ) {
-		$title = $field['title'] ?? \__( 'Save Changes' );
-		$class = $field['class'] ?? 'button button-primary';
+		$title = $field['title'] ?? $this->strings['submit_button_label'];
+		$atts = $field['attributes'] ?? [];
+
+		$atts['type'] = 'submit';
+		$atts['name'] = $atts['name'] ?? 'submit';
+		$atts['id'] = $atts['id'] ?? $atts['name'];
+		$atts['class'] = $atts['class'] ?? 'button button-primary';
+		$atts['value'] = $atts['value'] ?? $title;
+
 		?>
 		<p class="submit">
-			<input type="submit" name="submit" id="submit" class="<?php echo \esc_attr( $class ) ?>" value="<?php echo \esc_attr( $title ) ?>">
+			<?php $this->do_action( 'before_submit_button' ) ?>
+
+			<button <?php echo self::parse_tag_atts( $atts );  ?>>
+				<?php echo \esc_html( $title ); ?>
+			</button>
+
+			<?php $this->do_action( 'after_submit_button' ) ?>
 		</p>
 		<?php
 	}
@@ -1078,5 +1130,49 @@ class WP_Options_Page {
 	 */
 	public function apply_filters ( $hook_name, $value, ...$args ) {
 		return \apply_filters( $this->hook_prefix . $hook_name, $value, ...$args );
+	}
+
+	/**
+	 * Check if this instance page supports a given feature.
+	 *
+	 * @since 0.3.0
+	 * @param string $feature string The name of a feature to test support for.
+	 * @return bool True if the gateway supports the feature, false otherwise.
+	 */
+	public function supports ( $feature ) {
+		return \in_array( $feature, $this->supports );
+	}
+
+	/**
+	 * @since 0.3.0
+	 * @param array $atts
+	 * @return string
+	 */
+	public static function parse_tag_atts ( $atts ) {
+		$list = [];
+		foreach ( $atts as $name => $value ) {
+			// allow anonymous functions
+			if ( is_callable( $value ) && is_object( $value ) ) {
+				$value = call_user_func( $value );
+			}
+			// don't allow objects or arrays
+			elseif ( \is_object( $value ) || is_array( $value ) ) {
+				throw new \Exception( "Invalid value at key \"$name\" in " . __METHOD__ . ': array or objects are not allowed.' );
+			}
+
+			// delete the attribute with value null/false
+			if ( in_array( $value, [ false, null ], true ) ) continue;
+
+			// display only the attribute name if has empty string or TRUE
+			if ( true === $value ) $value = '';
+
+			$attr = \esc_html( $name );
+			$value = strval( $value );
+			if ( '' !== $value ) {
+				$attr .= '="' . \esc_attr( $value ) . '"';
+			}
+			$list[] = $attr;
+		}
+		return \implode( ' ', $list );
 	}
 }
