@@ -521,10 +521,11 @@ class WP_Options_Page {
 			$value = $_POST[ $name ] ?? '';
 
 			// maybe validate
-			if ( $field['__validate'] ) {
+			$validate = $field['@validate'] ?? '';
+			if ( $validate ) {
 				$error = false;
 				try {
-					$field['__validate']( $value, $field );
+					$validate( $value, $field );
 					$this->do_action( 'validate_field_' . $field['type'], $field, $this );
 				} catch ( \Throwable $e ) {
 					$error = $e->getMessage();
@@ -540,7 +541,7 @@ class WP_Options_Page {
 			}
 
 			// maybe sanitize
-			$sanitize = $field['__sanitize'] ?? '';
+			$sanitize = $field['@sanitize'] ?? '';
 			if ( $sanitize ) {
 				if ( \is_scalar( $value ) ) {
 					$value = $sanitize( $value );
@@ -716,8 +717,8 @@ class WP_Options_Page {
 			'description' => '',
 			'default' => '',
 			'attributes' => [],
-			'__sanitize' => null,
-			'__validate' => null,
+			'@sanitize' => null,
+			'@validate' => null,
 			'__is_input' => true,
 		];
 		$field = \array_merge( $defaults, $field );
@@ -730,10 +731,10 @@ class WP_Options_Page {
 				$field['__is_input'] = false;
 				break;
 			case 'textarea':
-				$field['__sanitize'] = 'sanitize_textarea_field';
+				$field['@sanitize'] = 'sanitize_textarea_field';
 				break;
 			default:
-				$field['__sanitize'] = 'sanitize_text_field';
+				$field['@sanitize'] = 'sanitize_text_field';
 				break;
 		}
 
