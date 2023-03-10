@@ -247,11 +247,11 @@ class WP_Options_Page {
 			],
 			$this->strings
 		);
-		$this->form_attributes = \wp_parse_args(
-			$this->form_attributes,
+		$this->form_attributes = \array_merge(
 			[
 				'novalidate' => 'novalidate'
-			]
+			],
+			$this->form_attributes
 		);
 
 		// force some <form> attributes
