@@ -687,25 +687,6 @@ class WP_Options_Page {
 
 	/**
 	 * @since 0.1.0
-	 * @param string $icon
-	 * @return string
-	 */
-	protected function get_icon ( $icon ) {
-		$icon = \esc_attr( trim( $icon ) );
-		if ( 0 === \strpos( $icon, 'dashicons-' ) ) {
-			return " <span class=\"dashicons $icon\" aria-hidden=\"true\"></span>";
-		}
-		if ( 0 === \strpos( $icon, 'data:image/' ) || 0 === \strpos( $icon, 'https://' ) ) {
-			return " <img src=\"$icon\" aria-hidden=\"true\">";
-		}
-		if ( $icon ) {
-			return " <span class=\"$icon\" aria-hidden=\"true\"></span>";
-		}
-		return '';
-	}
-
-	/**
-	 * @since 0.1.0
 	 * @param array $field
 	 * @return array
 	 */
@@ -714,7 +695,6 @@ class WP_Options_Page {
 			'id' => null,
 			'type' => 'text',
 			'title' => null,
-			'title_icon' => null,
 			'description' => '',
 			'default' => '',
 			'attributes' => [],
@@ -778,11 +758,10 @@ class WP_Options_Page {
 		$id = $field['id'];
 		$name = $field['name'];
 		$title = $field['title'] ?? $id;
-		$icon = $this->get_icon( $field['title_icon'] );
 		?>
 		<tr>
 			<th scope="row">
-				<label for="<?php echo \esc_attr( $name ); ?>"><?php echo \esc_html( $title ) . $icon ?></label>
+				<label for="<?php echo \esc_attr( $name ); ?>"><?php echo \esc_html( $title ) ?></label>
 			</th>
 			<td>
 		<?php
@@ -1021,11 +1000,10 @@ class WP_Options_Page {
 	 */
 	protected function render_field_title ( $field ) {
 		$id = $field['id'] ? $this->field_prefix . $field['id'] : '';
-		$icon = $this->get_icon( $field['title_icon'] );
 		$desc = $field['description'];
 		$class = $field['class'] ?? '';
 		?>
-		<h1 id="<?php echo \esc_attr( $id ) ?>" class="<?php echo \esc_attr( $class ) ?>"><?php echo \esc_html( $field['title'] ) . $icon ?></h1>
+		<h1 id="<?php echo \esc_attr( $id ) ?>" class="<?php echo \esc_attr( $class ) ?>"><?php echo \esc_html( $field['title'] ) ?></h1>
 		<?php if ( $desc ) : ?>
 		<p><?php echo $desc ?></p>
 		<?php endif ?>
@@ -1039,11 +1017,10 @@ class WP_Options_Page {
 	 */
 	protected function render_field_subtitle ( $field ) {
 		$id = $field['id'] ? $this->field_prefix . $field['id'] : '';
-		$icon = $this->get_icon( $field['title_icon'] );
 		$desc = $field['description'];
 		$class = $field['class'] ?? '';
 		?>
-		<h2 id="<?php echo esc_attr( $id ) ?>" class="<?php echo \esc_attr( $class ) ?>"><?php echo \esc_html( $field['title'] ) . $icon ?></h2>
+		<h2 id="<?php echo esc_attr( $id ) ?>" class="<?php echo \esc_attr( $class ) ?>"><?php echo \esc_html( $field['title'] ) ?></h2>
 
 		<?php if ( $desc ) : ?>
 		<p><?php echo $desc ?></p>
