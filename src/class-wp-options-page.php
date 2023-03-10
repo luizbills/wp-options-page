@@ -208,6 +208,14 @@ class WP_Options_Page {
 	public $supports = [];
 
 	/**
+	 * List of attributes of the <form> tag.
+	 *
+	 * @since 0.3.0
+	 * @var array<string, mixed>
+	 */
+	public $form_attributes = [];
+
+	/**
 	 * @since 0.1.0
 	 * @return void
 	 */
@@ -224,7 +232,6 @@ class WP_Options_Page {
 		$this->option_name = $this->option_name ?? $this->id . '_options';
 		$this->field_prefix = $this->field_prefix ?? $this->id . '_';
 		$this->hook_prefix = $this->hook_prefix ?? $this->field_prefix;
-
 		$this->strings = \array_merge(
 			[
 				'notice_error' => '<strong>Error</strong>: %s',
@@ -233,6 +240,15 @@ class WP_Options_Page {
 			],
 			$this->strings
 		);
+		$this->form_attributes = \wp_parse_args(
+			$this->form_attributes,
+			[
+				'novalidate' => 'novalidate'
+			]
+		);
+
+		// force some <form> attributes
+		$this->form_attributes['method'] = 'POST';
 
 		$this->init_hooks();
 		$this->init_fields();
@@ -593,11 +609,12 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	public function render_page () {
+		$this->form_attributes['action'] = \remove_query_arg( '_wp_http_referer' );
 		?>
 		<div class="wrap">
 			<?php $this->do_action( 'before_render_form', $this ); ?>
 
-			<form method="post" action="<?php echo \esc_attr( \remove_query_arg( '_wp_http_referer' ) ); ?>" novalidate="novalidate">
+			<form <?php echo self::parse_tag_atts( $this->form_attributes ); ?>>
 				<?php $this->render_notices() ?>
 				<?php $this->render_nonce() ?>
 				<?php $this->render_all_fields() ?>
@@ -839,7 +856,7 @@ class WP_Options_Page {
 		$this->open_wrapper( $field );
 		?>
 
-		<textarea <?php echo $atts; ?>><?php echo \esc_html( $value ); ?></textarea>
+		<textarea <?php echo self::parse_tag_atts( $atts ); ?>><?php echo \esc_html( $value ); ?></textarea>
 
 		<?php $this->do_action( 'after_field_input', $field ); ?>
 
@@ -871,7 +888,7 @@ class WP_Options_Page {
 		$this->open_wrapper( $field );
 		?>
 
-		<select <?php echo $atts; ?>>
+		<select <?php echo self::parse_tag_atts( $atts ); ?>>
 			<?php foreach ( $options as $opt_value => $opt_label ) : ?>
 				<option value="<?php echo \esc_attr( $opt_value ); ?>" <?php \selected( $opt_value, $value ) ?>><?php echo \esc_html( $opt_label ) ?></option>
 			<?php endforeach; ?>
@@ -1100,18 +1117,26 @@ class WP_Options_Page {
 	 * @return string
 	 */
 	public static function parse_tag_atts ( $atts ) {
-		$result = '';
+		$list = [];
 		foreach ( $atts as $name => $value ) {
-			if ( ! \is_scalar( $value ) ) throw new \Exception( "Invalid non-scalar value at key \"$name\" in " . __METHOD__ );
+			if ( \is_object( $value ) || is_array( $value ) ) throw new \Exception( "Invalid non-scalar value at key \"$name\" in " . __METHOD__ );
 
 			if ( in_array( $value, [ false, null ], true ) ) continue;
+
+			if ( is_callable( $value ) && ! is_string( $value ) ) {
+				$value = call_user_func( $value );
+			}
+
 			if ( true === $value ) $value = '';
 
-			$result .= ' ' . \esc_html( $name );
-			if ( $value ) {
-				$result .= '="' . \esc_attr( $value ) . '"';
+			$attr = \esc_html( $name );
+			$value = strval( $value );
+			if ( '' !== $value ) {
+				$attr .= '="' . \esc_attr( $value ) . '"';
 			}
+			$list[] = $attr;
 		}
-		return trim( $result );
+		error_log( implode( ' ', $list ) );
+		return \implode( ' ', $list );
 	}
 }
