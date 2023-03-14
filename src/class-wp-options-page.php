@@ -7,7 +7,7 @@ if ( class_exists( 'WP_Options_Page' ) ) return;
  *
  * @package WP_Options_Page
  * @author Luiz Bills <luizbills@pm.me>
- * @version 0.3.0
+ * @version 0.4.0
  * @see https://github.com/luizbills/wp-options-page
  */
 class WP_Options_Page {
@@ -506,27 +506,28 @@ class WP_Options_Page {
 		if ( ! \is_admin() ) return;
 		if ( $this->id !== ( $_REQUEST['page'] ?? '' ) ) return;
 
-		$nonce = $_REQUEST[ $this->get_nonce_name() ] ?? '';
+		$nonce = $_POST[ $this->get_nonce_name() ] ?? '';
 		$action = $this->get_nonce_action();
 		$invalid_nonce = ! \wp_verify_nonce( $nonce, $action );
 		$invalid_user = ! \current_user_can( $this->capability );
 		if ( $invalid_nonce || $invalid_user ) {
 			\wp_die( \esc_html__( 'Sorry, you are not allowed to access this page.' ), 403 );
 		}
-
 		$options = [];
+		$has_errors = false;
 
 		foreach ( $this->fields as &$field ) {
 			// skip fields that it's has input
 			if ( ! $field['__is_input'] ) continue;
 
 			$name = $field['name'];
-			$value = $_POST[ $name ] ?? '';
-			$value = $this->apply_filters( 'posted_value', $value, $name, $this );
+			$value = $this->apply_filters( 'posted_value', $_POST[ $name ] ?? '', $name, $this );
+			$field['value'] = $value;
+			$field['error'] = null;
 
 			// maybe validate
 			$validate = $field['@validate'] ?? null;
-			if ( $validate ) {
+			if ( \is_callable( $validate ) ) {
 				$error = false;
 				try {
 					$validate( $value, $field );
@@ -539,14 +540,14 @@ class WP_Options_Page {
 						$this->add_notice( $message, 'error', 'field-' . $name );
 					}
 					$field['error'] = $error;
-					$field['value'] = $value;
+					$has_errors = true;
 					continue;
 				}
 			}
 
 			// maybe sanitize
 			$sanitize = $field['@sanitize'] ?? null;
-			if ( $sanitize ) {
+			if ( \is_callable( $sanitize ) ) {
 				if ( \is_scalar( $value ) ) {
 					$value = $sanitize( $value );
 				} else {
@@ -554,8 +555,6 @@ class WP_Options_Page {
 				}
 			}
 
-			$field['value'] = $value;
-			$field['error'] = null;
 			$options[ $name ] = [
 				'id' => $field['id'],
 				'value' => $value
@@ -563,8 +562,9 @@ class WP_Options_Page {
 		}
 
 		$options = $this->apply_filters( 'updated_options', $options, $this );
+		$abort_update = (bool) $this->apply_filters( 'abort_update', $has_errors, $this );
 
-		if ( count( $options ) > 0 ) {
+		if ( ! $abort_update ) {
 			$updated = $this->update_options( $options );
 
 			$this->add_notice(
@@ -734,10 +734,10 @@ class WP_Options_Page {
 				$field['__is_input'] = false;
 				break;
 			case 'textarea':
-				$field['@sanitize'] = 'sanitize_textarea_field';
+				$field['@sanitize'] = $field['@sanitize'] ?? 'sanitize_textarea_field';
 				break;
 			default:
-				$field['@sanitize'] = 'sanitize_text_field';
+				$field['@sanitize'] = $field['@sanitize'] ?? 'sanitize_text_field';
 				break;
 		}
 
