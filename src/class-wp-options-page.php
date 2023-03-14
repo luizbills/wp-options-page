@@ -685,9 +685,9 @@ class WP_Options_Page {
 	protected function render_credits () {
 		if ( ! $this->credits ) return;
 
-		\add_filter( 'admin_footer_text', function () {
-			return '<span id="footer-thankyou">Powered by <a href="https://github.com/luizbills/wp-options-page" rel="nofollow noopener" target="_blank">WP Options Page</a>.</span>';
-		}, \PHP_INT_MAX );
+		\add_filter( 'update_footer', function () {
+			return '<em>Powered by <a href="https://github.com/luizbills/wp-options-page" rel="nofollow noopener" target="_blank">WP Options Page</a>.</em>';
+		}, \PHP_INT_MAX - 1 );
 	}
 
 	/**
@@ -717,16 +717,15 @@ class WP_Options_Page {
 		$defaults = [
 			'id' => '',
 			'type' => 'text',
-			'title' => '',
-			'description' => '',
-			'default' => '',
+			'title' => null,
+			'description' => null,
+			'default' => null,
 			'attributes' => [],
 			'@sanitize' => null,
 			'@validate' => null,
 			'__is_input' => true,
 		];
 		$field = \array_merge( $defaults, $field );
-		$field['name'] = $this->get_field_name( $field );
 
 		switch ( $field['type'] ) {
 			case 'title':
@@ -745,9 +744,13 @@ class WP_Options_Page {
 		$field = $this->apply_filters( 'prepare_field_' . $field['type'], $field, $this );
 		$field = $this->apply_filters( 'prepare_field', $field, $this );
 
-		$id = $field['id'];
-		if ( $field['__is_input'] && 'string' === gettype( $id ) && strlen( $id ) > 0 ) {
-			throw new \Exception( 'Missing field "id" property. All fields must have a string "id". ' );
+		$field['id'] = trim( $field['id'] );
+
+		if ( $field['__is_input'] ) {
+			$field['name'] = $this->get_field_name( $field );
+			if ( 0 === strlen( $field['id'] ) ) {
+				throw new \Exception( 'Missing field "id" property. All fields must have a string "id". ' );
+			}
 		}
 
 		return $field;
