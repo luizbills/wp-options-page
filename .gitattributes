@@ -1,3 +1,2 @@
-/tests          export-ignore
 /.*             export-ignore
 /phpstan*       export-ignore
