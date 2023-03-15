@@ -14,12 +14,6 @@ Install using composer:
 composer require luizbills/wp-options-page
 ```
 
-Or just copy [`src/class-wp-options-page.php`](/src/class-wp-options-page.php) to your project and include in your code:
-
-```php
-require 'path/to/your/class-wp-options-page.php';
-```
-
 ## Getting Started
 
 Just create an `WP_Options_Page` class instance on `init` action hook:
