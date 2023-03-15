@@ -1,13 +1,11 @@
 <?php
 
-if ( class_exists( 'WP_Options_Page' ) ) return;
-
 /**
  * WP_Options_Page class
  *
  * @package WP_Options_Page
  * @author Luiz Bills <luizbills@pm.me>
- * @version 0.4.0
+ * @version 0.4.1
  * @see https://github.com/luizbills/wp-options-page
  */
 class WP_Options_Page {
