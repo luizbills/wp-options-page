@@ -420,7 +420,12 @@ class WP_Options_Page {
 	 * @return string
 	 */
 	public function get_field_name ( $field ) {
-		return $this->field_prefix . $field['id'];
+		return $this->apply_filters(
+			'get_field_name',
+			$this->field_prefix . $field['id'],
+			$field,
+			$this
+		);
 	}
 
 	/**
