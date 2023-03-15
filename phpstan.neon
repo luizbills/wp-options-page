@@ -3,7 +3,6 @@ parameters:
 
     paths:
         - src
-        - tests
 
 includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
