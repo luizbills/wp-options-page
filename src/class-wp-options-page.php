@@ -5,7 +5,7 @@
  *
  * @package WP_Options_Page
  * @author Luiz Bills <luizbills@pm.me>
- * @version 0.4.2
+ * @version 0.5.0
  * @see https://github.com/luizbills/wp-options-page
  */
 class WP_Options_Page {
@@ -236,21 +236,16 @@ class WP_Options_Page {
 		$this->option_name = $this->option_name ?? $this->id . '_options';
 		$this->field_prefix = $this->field_prefix ?? $this->id . '_';
 		$this->hook_prefix = $this->hook_prefix ?? $this->field_prefix;
-		$this->strings = \array_merge(
-			[
-				'notice_error' => '<strong>Error</strong>: %s',
-				'checkbox_enable' => 'Enable',
-				'options_updated' => '<strong>' . \esc_html__( 'Settings saved.' ) . '</strong>',
-				'submit_button_label' => \esc_html__( 'Save Changes' ),
-			],
-			$this->strings
-		);
-		$this->form_attributes = \array_merge(
-			[
-				'novalidate' => 'novalidate'
-			],
-			$this->form_attributes
-		);
+
+		$default_strings = [
+			'notice_error' => '<strong>Error</strong>: %s',
+			'checkbox_enable' => 'Enable',
+			'options_updated' => '<strong>' . \esc_html__( 'Settings saved.' ) . '</strong>',
+			'submit_button_label' => \esc_html__( 'Save Changes' ),
+		];
+		$this->strings = \array_replace( $default_strings, (array) $this->strings);
+
+		$this->form_attributes = (array) $this->form_attributes;
 
 		\do_action( 'wp_options_page_init', $this );
 
@@ -264,11 +259,19 @@ class WP_Options_Page {
 	 * @return void
 	 */
 	protected function init_hooks () {
-		\add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		// register admin page
 		\add_action( 'admin_menu', [ $this, 'add_menu_page' ], $this->menu_priority );
+
+		// enqueue admin page JS and CSS files
+		\add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+
+		// maybe show "Settings saved" on submit
+		$this->add_action( 'after_update_options', [ $this, 'add_settings_saved_notice' ], 10, 2 );
 
 		// Removes slashes from a $_POST field values
 		$this->add_filter( 'posted_value', 'wp_unslash' );
+
+		$this->do_action( 'after_init_hooks', $this );
 	}
 
 	/**
@@ -317,6 +320,8 @@ class WP_Options_Page {
 				'type' => 'submit'
 			] );
 		}
+
+		$this->do_action( 'after_init_fields', $this );
 	}
 
 	/**
@@ -564,18 +569,35 @@ class WP_Options_Page {
 			];
 		}
 
-		$options = $this->apply_filters( 'updated_options', $options, $this );
 		$abort_update = (bool) $this->apply_filters( 'abort_update', $has_errors, $this );
 
-		if ( ! $abort_update ) {
-			$updated = $this->update_options( $options );
+		if ( $abort_update ) return;
 
-			$this->add_notice(
-				$this->strings['options_updated'],
-				'success',
-				'is-dismissible ' . ( $updated ? 'options-updated' : '' ),
-			);
+		$options = \apply_filters_deprecated(
+			$this->hook_prefix . 'updated_options',
+			[ $options, $this ],
+			'0.5.0',
+			$this->hook_prefix . 'updated_options'
+		);
+		$options = $this->apply_filters( 'update_options', $options, $this );
+		if ( ! empty( $options ) ) {
+			$updated = $this->update_options( $options );
+			$this->do_action( 'after_update_options', $options, $updated, $this );
 		}
+	}
+
+	/**
+	 * @since 0.1.0
+	 * @param array $options
+	 * @return bool
+	 */
+	public function update_options ( $options ) {
+		$prev = \get_option( $this->option_name );
+		$values = \is_array( $prev ) ? $prev : [];
+		foreach ( $options as $data ) {
+			$values[ $data['id'] ] = $data['value'];
+		}
+		return \update_option( $this->option_name, $values );
 	}
 
 	/**
@@ -592,17 +614,17 @@ class WP_Options_Page {
 	}
 
 	/**
-	 * @since 0.1.0
+	 * @since 0.5.0
 	 * @param array $options
-	 * @return bool
+	 * @param bool $updated
+	 * @return void
 	 */
-	public function update_options ( $options ) {
-		$old = \get_option( $this->option_name );
-		$values = \is_array( $old ) ? $old : [];
-		foreach ( $options as $data ) {
-			$values[ $data['id'] ] = $data['value'];
-		}
-		return \update_option( $this->option_name, $values );
+	public function add_settings_saved_notice ( $options, $updated ) {
+		$this->add_notice(
+			$this->strings['options_updated'],
+			'success',
+			'is-dismissible ' . ( $updated ? 'options-updated' : '' ),
+		);
 	}
 
 	/**
@@ -728,7 +750,7 @@ class WP_Options_Page {
 			'@validate' => null,
 			'__is_input' => true,
 		];
-		$field = \array_merge( $defaults, $field );
+		$field = \array_replace( $defaults, $field );
 
 		switch ( $field['type'] ) {
 			case 'title':
