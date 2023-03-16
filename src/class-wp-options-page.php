@@ -238,7 +238,7 @@ class WP_Options_Page {
 		$this->hook_prefix = $this->hook_prefix ?? $this->field_prefix;
 
 		$default_strings = [
-			'notice_error' => '<strong>Error</strong>: %s',
+			'template_notice_error' => '<strong>Error</strong>: %s',
 			'checkbox_enable' => 'Enable',
 			'options_updated' => '<strong>' . \esc_html__( 'Settings saved.' ) . '</strong>',
 			'submit_button_label' => \esc_html__( 'Save Changes' ),
@@ -482,12 +482,26 @@ class WP_Options_Page {
 	 * @param string $class
 	 * @return void
 	 */
-	public function add_notice ( $message, $type = 'error', $class = '' ) {
+	public function add_notice ( $message, $type = 'info', $class = '' ) {
 		$this->admin_notices[] = [
 			'message' => $message,
 			'type' => $type,
 			'class' => $class,
 		];
+	}
+
+	/**
+	 * @since 0.5.0
+	 * @param string $message
+	 * @param array $field
+	 * @return void
+	 */
+	public function add_error ( $message, $field ) {
+		$notice = \sprintf( $this->strings['template_notice_error'], $message );
+		$notice = $this->apply_filters( 'get_error_notice', $notice, $field, $message, $this );
+		if ( ! empty( $notice ) ) {
+			$this->add_notice( $notice, 'error' );
+		}
 	}
 
 	/**
@@ -536,18 +550,18 @@ class WP_Options_Page {
 			// maybe validate
 			$validate = $field['@validate'] ?? null;
 			if ( \is_callable( $validate ) ) {
-				$error = false;
 				try {
 					$validate( $value, $field );
 					$this->do_action( 'validate_field_' . $field['type'], $field, $this );
 				} catch ( \Throwable $e ) {
-					$error = $e->getMessage();
-					// avoid to display messages from empty exceptions
-					$message = $error ? $this->format_error_message( $error, $field ) : false;
-					if ( $message ) {
-						$this->add_notice( $message, 'error', 'field-' . $name );
-					}
-					$field['error'] = $error;
+					$error_message = $this->apply_filters(
+						'get_error_message',
+						$e->getMessage(),
+						$e,
+						$this
+					);
+					$this->add_error( $error_message, $field );
+					$field['error'] = $error_message;
 					$has_errors = true;
 					continue;
 				}
@@ -598,19 +612,6 @@ class WP_Options_Page {
 			$values[ $data['id'] ] = $data['value'];
 		}
 		return \update_option( $this->option_name, $values );
-	}
-
-	/**
-	 * @since 0.1.0
-	 * @param string $error
-	 * @param array $field
-	 * @return string
-	 */
-	public function format_error_message ( $error, $field ) {
-		return \sprintf(
-			$this->strings['notice_error'],
-			$error
-		);
 	}
 
 	/**
@@ -791,18 +792,33 @@ class WP_Options_Page {
 		$method = 'render_field_' . $type;
 		$this->maybe_open_or_close_table( $field );
 		$this->do_action( 'before_render_field', $field, $this );
-		if ( \method_exists( $this, $method ) ) {
-			$this->$method( $field );
-		} else {
-			\ob_start();
-			$this->do_action( 'render_field_'  . $type, $field, $this );
-			$output = \ob_get_clean();
-			if ( $output ) {
-				echo $output;
-			} else {
-				throw new \Exception( "Invalid field type \"{$field['type']}\" in " . \get_class( $this ) );
-			}
+
+		if ( $field['__is_input'] ) {
+			$this->open_wrapper( $field );
 		}
+
+		try {
+			if ( \method_exists( $this, $method ) ) {
+				$this->$method( $field );
+			} else {
+				\ob_start();
+				$this->do_action( 'render_field_'  . $type, $field, $this );
+				/** @var string */
+				$output = trim( \ob_get_clean() );
+				if ( '' !== $output ) {
+					echo $output;
+				} else {
+					throw new \Exception( "Invalid field type \"{$field['type']}\"" );
+				}
+			}
+		} catch ( \Throwable $e ) {
+			echo '<code>' . \esc_html( $e->getMessage() ) . '</code>';
+		}
+
+		if ( $field['__is_input'] ) {
+			$this->close_wrapper( $field );
+		}
+
 		$this->do_action( 'after_render_field', $field, $this );
 	}
 
@@ -854,8 +870,6 @@ class WP_Options_Page {
 		$atts['class'] = $atts['class'] ?? 'regular-text';
 		$atts['placeholder'] = $atts['placeholder'] ?? false;
 		$atts['aria-describedby'] = $desc ? \esc_attr( $name ) . '-description' : false;
-
-		$this->open_wrapper( $field );
 		?>
 
 		<input <?php echo self::parse_tag_atts( $atts ); ?>>
@@ -864,9 +878,7 @@ class WP_Options_Page {
 
 		<?php if ( $desc ) : ?>
 		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
-		<?php endif ?>
-
-		<?php $this->close_wrapper( $field );
+		<?php endif;
 	}
 
 	/**
@@ -886,8 +898,6 @@ class WP_Options_Page {
 		$atts['placeholder'] = $atts['placeholder'] ?? false;
 		$atts['rows'] = $atts['rows'] ?? 5;
 		$atts['aria-describedby'] = $desc ? \esc_attr( $name ) . '-description' : false;
-
-		$this->open_wrapper( $field );
 		?>
 
 		<textarea <?php echo self::parse_tag_atts( $atts ); ?>><?php echo \esc_html( $value ); ?></textarea>
@@ -896,9 +906,7 @@ class WP_Options_Page {
 
 		<?php if ( $desc ) : ?>
 		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
-		<?php endif; ?>
-
-		<?php $this->close_wrapper( $field );
+		<?php endif;
 	}
 
 	/**
@@ -917,8 +925,6 @@ class WP_Options_Page {
 		$atts['name'] = $name;
 		$atts['class'] = $atts['class'] ?? 'regular-text';
 		$atts['aria-describedby'] = $desc ? \esc_attr( $name ) . '-description' : false;
-
-		$this->open_wrapper( $field );
 		?>
 
 		<select <?php echo self::parse_tag_atts( $atts ); ?>>
@@ -931,9 +937,7 @@ class WP_Options_Page {
 
 		<?php if ( $desc ) : ?>
 		<p class="description" id="<?php echo \esc_attr( $name ); ?>-description"><?php echo $desc ?></p>
-		<?php endif ?>
-
-		<?php $this->close_wrapper( $field );
+		<?php endif;
 	}
 
 	/**
@@ -957,8 +961,6 @@ class WP_Options_Page {
 		unset( $atts['id'] );
 		unset( $atts['value'] );
 		unset( $atts['checked'] );
-
-		$this->open_wrapper( $field );
 		?>
 
 		<fieldset>
@@ -980,7 +982,7 @@ class WP_Options_Page {
 			<?php endif ?>
 		</fieldset>
 
-		<?php $this->close_wrapper( $field );
+		<?php
 	}
 
 	/**
@@ -1005,8 +1007,6 @@ class WP_Options_Page {
 
 		unset( $atts['value'] );
 		unset( $atts['checked'] );
-
-		$this->open_wrapper( $field );
 		?>
 
 		<fieldset>
@@ -1025,7 +1025,7 @@ class WP_Options_Page {
 			<?php endif ?>
 		</fieldset>
 
-		<?php $this->close_wrapper( $field );
+		<?php
 	}
 
 	/**
@@ -1049,8 +1049,6 @@ class WP_Options_Page {
 		unset( $atts['id'] );
 		unset( $atts['value'] );
 		unset( $atts['checked'] );
-
-		$this->open_wrapper( $field );
 		?>
 
 		<fieldset>
@@ -1073,7 +1071,7 @@ class WP_Options_Page {
 			<?php endif ?>
 		</fieldset>
 
-		<?php $this->close_wrapper( $field );
+		<?php
 	}
 
 	/**
