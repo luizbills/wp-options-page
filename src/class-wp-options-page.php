@@ -577,7 +577,7 @@ class WP_Options_Page {
 			$this->hook_prefix . 'updated_options',
 			[ $options, $this ],
 			'0.5.0',
-			$this->hook_prefix . 'updated_options'
+			$this->hook_prefix . 'update_options'
 		);
 		$options = $this->apply_filters( 'update_options', $options, $this );
 		if ( ! empty( $options ) ) {
