@@ -583,6 +583,7 @@ class WP_Options_Page {
 				} else {
 					$value = \maybe_unserialize( $sanitize( \serialize( $value ) ) );
 				}
+				$field['value'] = $value;
 			}
 
 			$options[ $name ] = [
