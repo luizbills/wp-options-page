@@ -5,10 +5,18 @@
  *
  * @package WP_Options_Page
  * @author Luiz Bills <luizbills@pm.me>
- * @version 0.5.0
+ * @version 0.6.0
  * @see https://github.com/luizbills/wp-options-page
  */
 class WP_Options_Page {
+	/**
+	 * The package version.
+	 *
+	 * @since 0.6.0
+	 * @var string
+	 */
+	const VERSION = '0.6.0';
+	
 	/**
 	 * The ID (also the slug) of the page. Should be unique for this menu page and only include lowercase alphanumeric, dashes, and underscores characters to be compatible with `sanitize_key()`.
 	 *
