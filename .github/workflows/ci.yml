@@ -9,10 +9,18 @@ jobs:
             - uses: actions/checkout@v3
             - uses: php-actions/composer@v6
 
-            - name: PHPStan Static Analysis
+            - name: PHPStan Static Analysis (PHP 8)
               uses: php-actions/phpstan@v3
               with:
                   error_format: github
                   php_version: 8.1
+                  php_extensions: opcache mbstring
+                  memory_limit: 1G
+          
+            - name: PHPStan Static Analysis (PHP 7)
+              uses: php-actions/phpstan@v3
+              with:
+                  error_format: github
+                  php_version: 7.4
                   php_extensions: opcache mbstring
                   memory_limit: 1G
