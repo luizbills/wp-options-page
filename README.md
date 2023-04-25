@@ -64,7 +64,7 @@ class My_Settings_Page extends WP_Options_Page {
 		return self::$instance;
 	}
 
-	public function __construct () {
+	private function __construct () {
 		add_action( 'init', [ $this, 'init' ] );
 	}
 
