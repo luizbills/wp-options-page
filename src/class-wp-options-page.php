@@ -15,7 +15,7 @@ class WP_Options_Page {
 	 * @since 0.6.0
 	 * @var string
 	 */
-	const VERSION = '0.6.1';
+	const VERSION = '0.7.0';
 
 	/**
 	 * The ID (also the slug) of the page. Should be unique for this menu page and only include lowercase alphanumeric, dashes, and underscores characters to be compatible with `sanitize_key()`.
