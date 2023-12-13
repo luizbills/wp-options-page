@@ -927,7 +927,7 @@ class WP_Options_Page {
 		$name = $field['name'];
 		$desc = $field['description'];
 		$value = $this->get_field_value( $field );
-		$options = $this->parse_options( field['options'] ?? [] );
+		$options = $this->parse_options( $field['options'] ?? [] );
 
 		$atts = $field['attributes'] ?? [];
 		$atts['id'] = $name;
@@ -961,7 +961,7 @@ class WP_Options_Page {
 		$name = $field['name'];
 		$desc = $field['description'];
 		$value = $this->get_field_value( $field );
-		$options = $this->parse_options( field['options'] ?? [] );
+		$options = $this->parse_options( $field['options'] ?? [] );
 
 		$atts = $field['attributes'] ?? [];
 		$atts['type'] = 'radio';
@@ -1047,7 +1047,7 @@ class WP_Options_Page {
 		$name = $field['name'];
 		$title = $field['title'] ?? $id;
 		$desc = $field['description'];
-		$options = $this->parse_options( field['options'] ?? [] );
+		$options = $this->parse_options( $field['options'] ?? [] );
 		$value = $this->get_field_value( $field );
 		$value = is_array( $value ) ? $value : [ $value ];
 
