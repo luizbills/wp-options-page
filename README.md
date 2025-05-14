@@ -2,10 +2,6 @@
 
 A class to build options pages for your WordPress plugins and themes.
 
-## Documentation
-
-Learn more in our [wiki](https://github.com/luizbills/wp-options-page/wiki).
-
 ## Install
 
 Install using composer:
@@ -100,9 +96,9 @@ Preview:
 
 ![](https://user-images.githubusercontent.com/1798830/215272911-9a90f0fd-d62d-49f4-bc64-7906f513695a.png)
 
----
+## Learn More
 
-Also, you can install and study our [Demo Plugin](https://github.com/luizbills/wp-options-page-demo).
+Visit our [wiki](https://github.com/luizbills/wp-options-page/wiki) or study (and install) our [Demo Plugin](https://github.com/luizbills/wp-options-page-demo).
 
 ## LICENSE
 
