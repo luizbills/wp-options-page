@@ -13,7 +13,7 @@ jobs:
               uses: php-actions/phpstan@v3
               with:
                   error_format: github
-                  php_version: 8.1
+                  php_version: 8.3
                   php_extensions: opcache mbstring
                   memory_limit: 1G
           
