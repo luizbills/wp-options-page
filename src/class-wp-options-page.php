@@ -5,7 +5,7 @@
  *
  * @package WP_Options_Page
  * @author Luiz Bills <luizbills@pm.me>
- * @version 0.7.0
+ * @version 0.8.0
  * @see https://github.com/luizbills/wp-options-page
  */
 class WP_Options_Page {
@@ -15,7 +15,7 @@ class WP_Options_Page {
 	 * @since 0.6.0
 	 * @var string
 	 */
-	const VERSION = '0.7.0';
+	const VERSION = '0.8.0';
 
 	/**
 	 * The ID (also the slug) of the page. Should be unique for this menu page and only include lowercase alphanumeric, dashes, and underscores characters to be compatible with `sanitize_key()`.
@@ -289,13 +289,15 @@ class WP_Options_Page {
 	public function init_fields () {
 		$this->fields = $this->apply_filters(
 			'get_fields',
-			$this->fields ? $this->fields : $this->get_fields(),
+			! empty( $this->fields ) ? $this->fields : $this->get_fields(),
 			$this
 		);
 
 		foreach ( $this->fields as $field ) {
 			$id = $field['id'] ?? false;
-			if ( $id ) $this->default_values[ $id ] = $field['default'] ?? null;
+			if ( ! empty( $id ) ) {
+				$this->default_values[ $id ] = $field['default'] ?? null;
+			}
 		}
 
 		if ( $this->insert_title ) {
@@ -319,8 +321,12 @@ class WP_Options_Page {
 		foreach ( $this->fields as $key => $field ) {
 			$field = $this->prepare_field( $field );
 			if ( ! $field ) continue;
+
 			$this->fields[ $key ] = $field;
-			if ( ! $has_submit && 'submit' === $field['type'] ) $has_submit = true;
+
+			if ( ! $has_submit && 'submit' === $field['type'] ) {
+				$has_submit = true;
+			}
 		}
 
 		if ( ! $has_submit ) {
@@ -555,27 +561,7 @@ class WP_Options_Page {
 			$field['value'] = $value;
 			$field['error'] = null;
 
-			// maybe validate
-			$validate = $field['@validate'] ?? null;
-			if ( \is_callable( $validate ) ) {
-				try {
-					$validate( $value, $field );
-					$this->do_action( 'validate_field_' . $field['type'], $field, $this );
-				} catch ( \Throwable $e ) {
-					$error_message = $this->apply_filters(
-						'get_error_message',
-						$e->getMessage(),
-						$e,
-						$this
-					);
-					$this->add_error( $error_message, $field );
-					$field['error'] = $error_message;
-					$has_errors = true;
-					continue;
-				}
-			}
-
-			// maybe sanitize
+			// handle field sanitization
 			$sanitize = $field['@sanitize'] ?? null;
 			if ( \is_callable( $sanitize ) ) {
 				if ( \is_scalar( $value ) ) {
@@ -584,6 +570,27 @@ class WP_Options_Page {
 					$value = \maybe_unserialize( $sanitize( \serialize( $value ) ) );
 				}
 				$field['value'] = $value;
+			}
+
+			// handle field validation
+			try {
+				$validate = $field['@validate'] ?? null;
+				if ( \is_callable( $validate ) ) {
+					$validate( $value, $field );
+				}
+				$this->do_action( 'validate_field_' . $field['type'], $field, $this );
+				$this->do_action( 'validate_field_' . $field['id'], $field, $this );
+			} catch ( \Throwable $e ) {
+				$error_message = $this->apply_filters(
+					'get_error_message',
+					$e->getMessage(),
+					$e,
+					$this
+				);
+				$this->add_error( $error_message, $field );
+				$field['error'] = $error_message;
+				$has_errors = true;
+				continue;
 			}
 
 			$options[ $name ] = [
@@ -596,12 +603,6 @@ class WP_Options_Page {
 
 		if ( $abort_update ) return;
 
-		$options = \apply_filters_deprecated(
-			$this->hook_prefix . 'updated_options',
-			[ $options, $this ],
-			'0.5.0',
-			$this->hook_prefix . 'update_options'
-		);
 		$options = $this->apply_filters( 'update_options', $options, $this );
 		if ( ! empty( $options ) ) {
 			$updated = $this->update_options( $options );
@@ -784,7 +785,7 @@ class WP_Options_Page {
 		if ( $field['__is_input'] ) {
 			$field['name'] = $this->get_field_name( $field );
 			if ( 0 === strlen( $field['id'] ) ) {
-				throw new \Exception( 'Missing field "id" property. All fields must have a string "id". ' );
+				throw new \Exception( 'Missing field "id" property. All fields must have a string "id".' );
 			}
 		}
 
@@ -1078,6 +1079,7 @@ class WP_Options_Page {
 			<?php if ( $desc ) : ?>
 			<p class="description"><?php echo $desc ?></p>
 			<?php endif ?>
+
 		</fieldset>
 
 		<?php
@@ -1185,7 +1187,7 @@ class WP_Options_Page {
 	 * @return bool True if the gateway supports the feature, false otherwise.
 	 */
 	public function supports ( $feature ) {
-		return isset( $this->supports[ $feature ] ) || \in_array( $feature, $this->supports );
+		return isset( $this->supports[ $feature ] ) || \in_array( $feature, $this->supports, true );
 	}
 
 	/**
